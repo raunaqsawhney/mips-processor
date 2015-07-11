@@ -26,11 +26,10 @@ wire i_busy;
 //DMEM REGS
 wire [31:0] d_address;
 wire [31:0] d_data_in;
-wire [1:0] d_access_size;
+reg [1:0] d_access_size;
 wire d_rw;
-wire d_mem_enable;
+reg d_mem_enable;
 wire d_busy;
-wire [31:0] d_data_out;
 
 //FD Registers
 wire [31:0] pc_FD;
@@ -68,7 +67,7 @@ reg rwd_XM;
 reg [31:0] pc_MW;
 reg [31:0] IR_MW;
 reg [31:0] o_MW;
-reg [31:0] b_MW; 
+reg [31:0] d_MW; 
 reg br_MW;
 reg jp_MW;
 reg aluinb_MW;
@@ -93,10 +92,14 @@ wire rwd;
 // Data Wires (From EXECUTE Stage)
 wire [31:0] aluOut;
 wire [31:0] rBOut;
+wire dmwe_XM_inverted;
 
 //Data Wires (From WRITEBACK Stage)
 wire [4:0] insn_to_d;
 wire [31:0] dataout;
+
+//Data Wires (From MEMORY Stage)
+wire [31:0] d_data_out;
 
 memory IM (
 	.clock(clock),
@@ -159,7 +162,7 @@ memory DM (
 	.address(aluOut_XM),
 	.data_in(rBOut_XM),
 	.access_size(d_access_size),
-	.rw(dmwe_XM),	// Set DMEM RW (DMWE) to the dmwe control signal in XM Registers
+	.rw(dmwe_XM_inverted),	// Set DMEM RW (DMWE) to the dmwe control signal in XM Registers
 	.enable(d_mem_enable),
 	.busy(d_busy),
 	.data_out(d_data_out)
@@ -180,7 +183,6 @@ writeback W0 (
 	.rwd(rwd_MW),
 	.insn_to_d(insn_to_d)
 );
-
 
 initial begin
 	clock = 1;
@@ -219,8 +221,13 @@ initial begin
 
     	// Set RA return address (r31) to a known value
     	D0.R0.REGFILE[31] = 32'hdeadbeef; 
+
+	d_access_size = 2'b00;
+	d_mem_enable = 1;
 	
 end
+
+assign dmwe_XM_inverted = ~dmwe_XM;
 
 always @(posedge clock) begin
 	
@@ -240,7 +247,7 @@ always @(posedge clock) begin
 	pc_XM <= pc_DX;
 	IR_XM <= IR_DX;
 	aluOut_XM <= aluOut;
-	rBOut_XM <= rBOut;
+	rBOut_XM <= rB_DX;
 	br_XM <= br_DX;
 	jp_XM <= jp_DX;
 	aluinb_XM <= aluinb_DX;
@@ -253,7 +260,7 @@ always @(posedge clock) begin
 	pc_MW <= pc_XM;
 	IR_MW <= IR_XM;
 	o_MW <= aluOut_XM;
-	b_MW <= rBOut_XM;
+	d_MW <= d_data_out;
 	br_MW <= br_XM;
 	jp_MW <= jp_XM;
 	aluinb_MW <= aluinb_XM;
@@ -262,8 +269,6 @@ always @(posedge clock) begin
 	rwe_MW <= rwe_XM;
 	rdst_MW <= rdst_XM;
 	rwd_MW <= rwd_XM;
-	
-
 end
 
 always
