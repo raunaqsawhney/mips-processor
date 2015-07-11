@@ -25,6 +25,30 @@ reg[31:0] read_data;
 reg[31:0] data_read;
 reg stall;
 
+reg [31:0] pc_DX;
+reg [31:0] IR_DX;
+reg [31:0] rA_DX;
+reg [31:0] rB_DX;
+reg br_DX;
+reg jp_DX;
+reg aluinb_DX;
+reg [5:0] aluop_DX;
+reg dmwe_DX;
+reg rwe_DX;
+reg rdst_DX;
+reg rwd_DW;
+
+wire [31:0] rA;
+wire [31:0] rB;
+wire br;
+wire jp;
+wire aluinb;
+wire [5:0] aluop;
+wire dmwe;
+wire rwe;
+wire rdst;
+wire rwd;
+
 memory IM (
 	.clock(clock),
 	.address(i_address),
@@ -44,6 +68,22 @@ fetch #(.base_addr(base_addr)) F0 (
 	.address(i_address),
 	.access_size(i_access_size),
 	.i_mem_enable(i_mem_enable)
+);
+
+decode D0 (
+	.clock(clock),
+	.pc(pc_FD),
+	.insn(i_data_out),
+	.rA(rA),
+	.rB(rB),
+	.br(br),
+	.jp(jp),
+	.aluinb(aluinb),
+	.aluop(aluop),
+	.dmwe(dmwe),
+	.rwe(rwe),
+	.rdst(rdst),
+	.rwd(rwd)
 );
 
 initial begin
@@ -66,40 +106,23 @@ initial begin
 
 		count = count + 4;
 	end
-
-	// Finished writing to IMEM, now READ
-	//i_rw = 1;
-	//i_address = base_addr;
 end
-/*
+
 always @(posedge clock) begin
-	// if (rw == 0) begin
-	// 	scan_file = $fscanf(file, "%x", data_in);
-	// 	if ($feof(file) == 0) begin
-	// 		$display("data_in = %x", data_in);
-	// 		address = address + 32'h4;
-
-	// 		count = count + 4;
-	// 	end
-	// end
-
-	/
-	if (i_rw == 1 && words_read <= count) begin
-		data_read = i_data_out;
-		i_address = i_address + 32'h4;
-		words_read = words_read + 4;
-	end
 	
+	pc_DX <= pc_FD;
+	IR_DX <= i_data_out;
+	rA_DX <= rA;
+	rB_DX <= rB;
+	br_DX <= br;
+	jp_DX <= jp;
+	aluinb_DX <= aluinb;
+	aluop_DX <= aluop;
+	dmwe_DX <= dmwe;
+	rwe_DX <= rwe;
+	rdst_DX <= rdst;
+	rwd_DW <= rwd;
 end
-*/
-
-/*
-always @(negedge clock) begin
-	if (i_rw == 1 && words_read <= count) begin
-		$display("data_out = %x", i_data_out);
-	end
-end
-*/
 
 always
 	#5 clock = ! clock;
