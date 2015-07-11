@@ -1,4 +1,4 @@
-module decode(clock, pc, insn, rA, rB, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd);
+module decode(clock, pc, insn, rA, rB, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, rd, d);
 
 /****************OPCODES******************/
 // R-Type FUNC Codes
@@ -36,6 +36,7 @@ parameter ADDI  = 6'b001000; //ADDI (LI)
 parameter ADDIU = 6'b001001; //ADDIU
 parameter SLTI  = 6'b001010; //SLTI
 parameter SLTIU = 6'b001011; //SLTIU
+parameter ANDI  = 6'b001100; //ANDI
 parameter ORI	= 6'b001101; //ORI
 parameter XORI  = 6'b001110; //XORI
 parameter LW	= 6'b100011; //LW
@@ -65,6 +66,8 @@ parameter RTYPE = 6'b000000;
 input clock;
 input wire [31:0] pc;
 input wire [31:0] insn;
+input wire [31:0] rd;
+input wire [4:0] d;
 
 output [31:0] rA;
 output [31:0] rB;
@@ -80,8 +83,6 @@ output reg rwd;
 
 reg [4:0] s1;
 reg [4:0] s2;
-reg [4:0] d;
-reg [31:0] rd;
 
 regfile R0 (
 	.clock(clock),
@@ -260,6 +261,7 @@ begin : DECODE
 				s2 = insn[20:16];
 			end
 			SLL: begin
+				//TODO
 			end
 			SLLV: begin
 				br = 0;
@@ -275,6 +277,7 @@ begin : DECODE
 				s2 = insn[20:16];
 			end
 			SRL: begin
+				//TODO
 			end
 			SRLV: begin
 				br = 0;
@@ -290,6 +293,7 @@ begin : DECODE
 				s2 = insn[20:16];
 			end
 			SRA: begin
+				//TODO
 			end
 			SRAV: begin
 				br = 0;
@@ -416,6 +420,19 @@ begin : DECODE
 				jp = 0;
 				aluinb = 1;
 				aluop = SLT;
+				dmwe = 0;
+				rwe = 1;
+				rdst = 1;
+				rwd = 0;
+
+				s1 = insn[25:21];
+				s2 = insn[20:16];
+			end
+			ANDI: begin
+				br = 0;
+				jp = 0;
+				aluinb = 1;
+				aluop = OR;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 1;
@@ -640,4 +657,3 @@ begin : DECODE
 	end
 end
 endmodule
-
