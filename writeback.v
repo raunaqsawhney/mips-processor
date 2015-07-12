@@ -27,8 +27,8 @@ begin : WRITEBACK
 	endcase
 	
 	case (rdst)
-		1'b0: insn_to_d <= insn[15:7]; //rd
-		1'b1: insn_to_d <= insn[20:16]; //rt
+		1'b0: insn_to_d <= insn[20:16]; //rt
+		1'b1: insn_to_d <= insn[15:11]; //rd
 	endcase
 end
 endmodule

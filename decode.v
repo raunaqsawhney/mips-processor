@@ -63,6 +63,43 @@ parameter NOP   = 6'b000000;
 parameter RTYPE = 6'b000000;
 /******************************************/
 
+/****************ALUOPS******************/
+parameter ADD_OP 	= 6'b000000;
+parameter SUB_OP	= 6'b000001;
+parameter MULT_OP	= 6'b000010;		
+parameter DIV_OP	= 6'b000011;		
+parameter MFHI_OP	= 6'b000100;
+parameter MFLO_OP 	= 6'b000101;	
+parameter SLT_OP	= 6'b000110;
+parameter SLL_OP	= 6'b000111;
+parameter SLLV_OP	= 6'b001000;
+parameter SRL_OP	= 6'b001001;
+parameter SRLV_OP	= 6'b001010;
+parameter SRA_OP	= 6'b001011;
+parameter SRAV_OP	= 6'b001100;
+parameter AND_OP	= 6'b001101;
+parameter OR_OP		= 6'b001110;
+parameter XOR_OP	= 6'b001111;
+parameter NOR_OP	= 6'b010000;
+parameter JALR_OP	= 6'b010001;	
+parameter JR_OP		= 6'b010010;
+parameter LW_OP		= 6'b010011;
+parameter SW_OP		= 6'b010100;
+parameter LB_OP		= 6'b010101;
+parameter LUI_OP   	= 6'b010110;
+parameter SB_OP		= 6'b010111;
+parameter LBU_OP	= 6'b011000;
+parameter BEQ_OP	= 6'b011001;
+parameter BNE_OP	= 6'b011010;
+parameter BGTZ_OP	= 6'b011011;
+parameter BLEZ_OP	= 6'b011100;
+parameter BLTZ_OP 	= 6'b011101;
+parameter BGEZ_OP  	= 6'b011110;
+parameter J_OP 		= 6'b011111;
+parameter JAL_OP    	= 6'b100000;
+parameter NOP_OP	= 6'b100001;
+/**************************************/
+
 input clock;
 input wire [31:0] pc;
 input wire [31:0] insn;
@@ -97,209 +134,251 @@ regfile R0 (
 
 always @(insn)
 begin : DECODE
-	if (insn[31:26] == RTYPE || insn[31:26] == MUL_OP) begin
+	if (insn == 32'h0) begin
+		// NOP
+		aluop = NOP_OP;
+	end else if (insn[31:26] == RTYPE || insn[31:26] == MUL_OP) begin
 		// Instruction R-Type
-
 		case(insn[5:0])
 			ADD: begin
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = ADD;
+				aluop = ADD_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
 
-				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s1 = insn[25:21];	//rs
+				s2 = insn[20:16];	//rt
 			end
 			ADDU: begin
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = ADD;
+				aluop = ADD_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
 
-				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s1 = insn[25:21];	//rs
+				s2 = insn[20:16];	//rt
 			end
 			SUB: begin
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = SUB;
+				aluop = SUB_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
 
-				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s1 = insn[25:21];	//rs
+				s2 = insn[20:16];	//rt
 			end
 			SUBU: begin
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = SUB;
+				aluop = SUB_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
 
-				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s1 = insn[25:21];	//rs
+				s2 = insn[20:16];	//rt
 			end
 			MUL_FUNC: begin
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = MULT;
+				aluop = MULT_OP;
 				dmwe = 0;
-				rwe = 1;
-				rdst = 1;
-				rwd = 0;
+				rwe = 0;
+				rdst = 1'hx;
+				rwd = 1'hx;
 
-				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s1 = insn[25:21];	//rs
+				s2 = insn[20:16];	//rt
 			end
 			MULT: begin
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = MULT;
+				aluop = MULT_OP;
 				dmwe = 0;
-				rwe = 1;
-				rdst = 1;
-				rwd = 0;
+				rwe = 0;
+				rdst = 1'hx;
+				rwd = 1'hx;
 
-				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s1 = insn[25:21];	//rs
+				s2 = insn[20:16];	//rt
 			end
 			MULTU: begin
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = MULT;
+				aluop = MULT_OP;
 				dmwe = 0;
-				rwe = 1;
-				rdst = 1;
-				rwd = 0;
+				rwe = 0;
+				rdst = 1'hx;
+				rwd = 1'hx;
 
-				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s1 = insn[25:21];	//rs
+				s2 = insn[20:16];	//rt
 			end
 			DIV: begin
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = DIV;
+				aluop = DIV_OP;
 				dmwe = 0;
-				rwe = 1;
-				rdst = 1;		// Pick s2, since no d
-				rwd = 0;
+				rwe = 0;
+				rdst = 1'hx;		
+				rwd = 1'hx;
 
-				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s1 = insn[25:21];	//rs
+				s2 = insn[20:16];	//rt
 			end
 			DIVU: begin
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = DIV;
+				aluop = DIV_OP;
 				dmwe = 0;
-				rwe = 1;
-				rdst = 0;		// Pick s2, since no d
-				rwd = 0;
+				rwe = 0;
+				rdst = 1'hx;		
+				rwd = 1'hx;
 
-				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s1 = insn[25:21];	//rs
+				s2 = insn[20:16];	//rt
 			end
 			MFHI: begin
 				br = 0;
 				jp = 0;
-				aluinb = 0;
-				aluop = MFHI;
+				aluinb = 1'hx;
+				aluop = MFHI_OP;
 				dmwe = 0;
-				rwd = 1;	// No need to writeback to regfile
+				rwe = 0;
+				rdst = 1;		
+				rwd = 0;
+
+				s1 = 5'h0;	//rs is not needed
+				s2 = 5'h0;	//rt is not needed
 			end
 			MFLO: begin
 				br = 0;
 				jp = 0;
-				aluinb = 0;
-				aluop = MFLO;
+				aluinb = 1'hx;
+				aluop = MFLO_OP;
 				dmwe = 0;
-				rwd = 1;	// No need to writeback to regfile
+				rwe = 0;
+				rdst = 1;		
+				rwd = 0;
+
+				s1 = 5'h0;	//rs is not needed
+				s2 = 5'h0;	//rt is not needed
 			end
 			SLT: begin
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = SLT;
+				aluop = SLT_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
 
-				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s1 = insn[25:21];	//rs
+				s2 = insn[20:16];	//rt
 			end
 			SLTU: begin
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = SLT;
+				aluop = SLT_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
 
-				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s1 = insn[25:21];	//rs
+				s2 = insn[20:16];	//rt
 			end
 			SLL: begin
-				//TODO
+				br = 0;
+				jp = 0;
+				aluinb = 0;
+				aluop = SLL_OP;
+				dmwe = 0;
+				rwe = 1;
+				rdst = 1;
+				rwd = 0;
+
+				s1 = 5'h0;		//rs
+				s2 = insn[20:16];	//rt
 			end
 			SLLV: begin
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = SLL;
+				aluop = SLLV_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
 
-				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s1 = insn[25:21];	//rs
+				s2 = insn[20:16];	//rt
 			end
 			SRL: begin
-				//TODO
+				br = 0;
+				jp = 0;
+				aluinb = 0;
+				aluop = SRL_OP;
+				dmwe = 0;
+				rwe = 1;
+				rdst = 1;
+				rwd = 0;
+
+				s1 = 5'h0;			//rs
+				s2 = insn[20:16];	//rt
 			end
 			SRLV: begin
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = SRL;
+				aluop = SRLV_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
 
-				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s1 = insn[25:21];	//rs
+				s2 = insn[20:16];	//rt
 			end
 			SRA: begin
-				//TODO
+				br = 0;
+				jp = 0;
+				aluinb = 0;
+				aluop = SRA_OP;
+				dmwe = 0;
+				rwe = 1;
+				rdst = 1;
+				rwd = 0;
+
+				s1 = 5'h0;			//rt
+				s2 = insn[20:16];	//rt
 			end
 			SRAV: begin
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = SRA;
+				aluop = SRAV_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 1;
@@ -312,7 +391,7 @@ begin : DECODE
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = AND;
+				aluop = AND_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 1;
@@ -325,7 +404,7 @@ begin : DECODE
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = OR;
+				aluop = OR_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 1;
@@ -338,7 +417,7 @@ begin : DECODE
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = NOR;
+				aluop = NOR_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 1;
@@ -350,26 +429,28 @@ begin : DECODE
 			JALR: begin
 				br = 0;
 				jp = 1;
-				aluinb = 0;
-				aluop = JALR;
+				aluinb = 1'hx;
+				aluop = JALR_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
 
 				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s2 = 5'h0;
 			end
 			JR: begin
 				br = 0;
 				jp = 1;
-				aluinb = 0;
-				aluop = JR;
+				aluinb = 1'hx;
+				aluop = JR_OP;
 				dmwe = 0;
-				rwe = 1;
-				rwd = 0;
+				rwe = 0;
+				rdst = 1'hx;
+				rwd = 1'hx;
 
 				s1 = insn[25:21];
+				s2 = 5'h0;
 			end
 		endcase
 	end else if (insn[31:26] != RTYPE && insn[31:27] != 5'b00001 && insn[31:26] != 6'b000001) begin
@@ -380,10 +461,10 @@ begin : DECODE
 				br = 0;
 				jp = 0;
 				aluinb = 1;
-				aluop = ADD;
+				aluop = ADD_OP;
 				dmwe = 0;
 				rwe = 1;
-				rdst = 1;
+				rdst = 0;
 				rwd = 0;
 
 				s1 = insn[25:21];
@@ -393,10 +474,10 @@ begin : DECODE
 				br = 0;
 				jp = 0;
 				aluinb = 1;
-				aluop = ADD;
+				aluop = ADD_OP;
 				dmwe = 0;
 				rwe = 1;
-				rdst = 1;
+				rdst = 0;
 				rwd = 0;
 
 				s1 = insn[25:21];
@@ -406,10 +487,10 @@ begin : DECODE
 				br = 0;
 				jp = 0;
 				aluinb = 1;
-				aluop = SLT;
+				aluop = SLT_OP;
 				dmwe = 0;
 				rwe = 1;
-				rdst = 1;
+				rdst = 0;
 				rwd = 0;
 
 				s1 = insn[25:21];
@@ -419,10 +500,10 @@ begin : DECODE
 				br = 0;
 				jp = 0;
 				aluinb = 1;
-				aluop = SLT;
+				aluop = SLT_OP;
 				dmwe = 0;
 				rwe = 1;
-				rdst = 1;
+				rdst = 0;
 				rwd = 0;
 
 				s1 = insn[25:21];
@@ -432,10 +513,10 @@ begin : DECODE
 				br = 0;
 				jp = 0;
 				aluinb = 1;
-				aluop = OR;
+				aluop = AND_OP;
 				dmwe = 0;
 				rwe = 1;
-				rdst = 1;
+				rdst = 0;
 				rwd = 0;
 
 				s1 = insn[25:21];
@@ -445,10 +526,10 @@ begin : DECODE
 				br = 0;
 				jp = 0;
 				aluinb = 1;
-				aluop = OR;
+				aluop = OR_OP;
 				dmwe = 0;
 				rwe = 1;
-				rdst = 1;
+				rdst = 0;
 				rwd = 0;
 
 				s1 = insn[25:21];
@@ -458,10 +539,10 @@ begin : DECODE
 				br = 0;
 				jp = 0;
 				aluinb = 1;
-				aluop = XOR;
+				aluop = XOR_OP;
 				dmwe = 0;
 				rwe = 1;
-				rdst = 1;
+				rdst = 0;
 				rwd = 0;
 
 				s1 = insn[25:21];
@@ -471,7 +552,7 @@ begin : DECODE
 				br = 0;
 				jp = 0;
 				aluinb = 1;
-				aluop = LW;
+				aluop = LW_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 0;
@@ -484,9 +565,11 @@ begin : DECODE
 				br = 0;
 				jp = 0;
 				aluinb = 1;
-				aluop = SW;
+				aluop = SW_OP;
 				dmwe = 1;
 				rwe = 0;
+				rdst = 1'hx;
+				rwd = 1'hx;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -495,7 +578,7 @@ begin : DECODE
 				br = 0;
 				jp = 0;
 				aluinb = 1;
-				aluop = LB;
+				aluop = LB_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 0;
@@ -507,23 +590,25 @@ begin : DECODE
 			LUI: begin
 				br = 0;
 				jp = 0;
-				aluinb = 1;
-				aluop = LUI;
+				aluinb = 1'hx;
+				aluop = LUI_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 0;
 				rwd = 1;
 
-				s1 = 5'b0;
+				s1 = 5'h0;
 				s2 = insn[20:16];
 			end
 			SB: begin
 				br = 0;
 				jp = 0;
 				aluinb = 1;
-				aluop = SB;
+				aluop = SB_OP;
 				dmwe = 1;
 				rwe = 0;
+				rdst = 1'hx;
+				rwd = 1'hx;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -532,7 +617,7 @@ begin : DECODE
 				br = 0;
 				jp = 0;
 				aluinb = 1;
-				aluop = LB;
+				aluop = LBU_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 0;
@@ -545,11 +630,11 @@ begin : DECODE
 				br = 1;
 				jp = 0;
 				aluinb = 0;
-				aluop = BEQ;
+				aluop = BEQ_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 0;
-				rwd = 0;
+				rdst = 1'hx;
+				rwd = 1'hx;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -558,11 +643,11 @@ begin : DECODE
 				br = 1;
 				jp = 0;
 				aluinb = 0;
-				aluop = BNE;
+				aluop = BNE_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 0;
-				rwd = 0;
+				rdst = 1'hx;
+				rwd = 1'hx;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -570,28 +655,28 @@ begin : DECODE
 			BGTZ: begin
 				br = 1;
 				jp = 0;
-				aluinb = 0;
-				aluop = BGTZ;
+				aluinb = 1'hx;
+				aluop = BGTZ_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 0;
-				rwd = 0;
+				rdst = 1'hx;
+				rwd = 1'hx;
 
 				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s2 = 5'h0;
 			end
 			BLEZ: begin
 				br = 1;
 				jp = 0;
-				aluinb = 0;
-				aluop = BLEZ;
+				aluinb = 1'hx;
+				aluop = BLEZ_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 0;
-				rwd = 0;
+				rdst = 1'hx;
+				rwd = 1'hx;
 
 				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s2 = 5'h0;
 			end
 		endcase
 	end else if (insn[31:6] == 6'b000001) begin
@@ -601,28 +686,28 @@ begin : DECODE
 			BLTZ: begin
 				br = 1;
 				jp = 0;
-				aluinb = 0;
-				aluop = BLTZ;
+				aluinb = 1'hx;
+				aluop = BLTZ_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 0;
-				rwd = 0;
+				rdst = 1'hx;
+				rwd = 1'hx;
 
 				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s2 = 5'h0;
 			end
 			BGEZ: begin
 				br = 1;
 				jp = 0;
-				aluinb = 0;
-				aluop = BGEZ;
+				aluinb = 1'hx;
+				aluop = BGEZ_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 0;
-				rwd = 0;
+				rdst = 1'hx;
+				rwd = 1'hx;
 
 				s1 = insn[25:21];
-				s2 = insn[20:16];
+				s2 = 5'h0;
 			end
 		endcase
 	end else if (insn[31:27] == 5'b00001) begin
@@ -632,28 +717,24 @@ begin : DECODE
 			J: begin
 				br = 0;
 				jp = 1;
-				aluinb = 0;
-				aluop = J;
+				aluinb = 1'hx;
+				aluop = J_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 0;
-				rwd = 0;
+				rdst = 1'hx;
+				rwd = 1'hx;
 			end
 			JAL: begin
 				br = 0;
 				jp = 1;
-				aluinb = 0;
-				aluop = J;
+				aluinb = 1'hx;
+				aluop = JAL_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 0;
-				rwd = 0;
-
-				//TODO: WORK ON THIS
+				rdst = 1'hx;
+				rwd = 1'hx;
 			end
 		endcase
-	end else if (insn[31:0] == 32'h00000000) begin
-		aluop = NOP;
 	end
 end
 endmodule

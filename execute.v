@@ -1,66 +1,41 @@
-module execute (pc, rA, rB, insn, aluOut, rBOut, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd);
+module execute (pc, rA, rB, insn, aluOut, rBOut, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, pc_effective, do_branch);
 
-/****************OPCODES******************/
-// R-Type FUNC Codes
-parameter ADD 	= 6'b100000; //ADD;
-parameter ADDU 	= 6'b100001; //ADDU;
-parameter SUB	= 6'b100010; //SUB;
-parameter SUBU	= 6'b100011; //SUBU;	
-parameter MULT	= 6'b011000; //MULT;	
-parameter MULTU = 6'b011001; //MULTU;		
-parameter DIV	= 6'b011010; //DIV;		
-parameter DIVU 	= 6'b011011; //DIVU;		
-parameter MFHI	= 6'b010000; //MFHI;		
-parameter MFLO 	= 6'b010010; //MFLO;		
-parameter SLT	= 6'b101010; //SLT;
-parameter SLTU	= 6'b101011; //SLTU;
-parameter SLL	= 6'b000000; //SLL;
-parameter SLLV	= 6'b000100; //SLLV;
-parameter SRL	= 6'b000010; //SRL;
-parameter SRLV	= 6'b000110; //SRLV;
-parameter SRA	= 6'b000011; //SRA;
-parameter SRAV	= 6'b000111; //SRAV;
-parameter AND	= 6'b100100; //AND;
-parameter OR	= 6'b100101; //OR;
-parameter XOR	= 6'b100110; //XOR;
-parameter NOR	= 6'b100111; //NOR
-parameter JALR	= 6'b001001; //JALR;		
-parameter JR	= 6'b001000; //JR;		
-
-// MUL R-TYPE Opcode
-parameter MUL_OP = 6'b011100; 	//MUL OPCODE
-parameter MUL_FUNC = 6'b000010; //MUL FUNCTION CODE
-
-// I-Type Opcodes
-parameter ADDI  = 6'b001000; //ADDI (LI)
-parameter ADDIU = 6'b001001; //ADDIU
-parameter SLTI  = 6'b001010; //SLTI
-parameter SLTIU = 6'b001011; //SLTIU
-parameter ORI	= 6'b001101; //ORI
-parameter XORI  = 6'b001110; //XORI
-parameter LW	= 6'b100011; //LW
-parameter SW	= 6'b101011; //SW
-parameter LB	= 6'b100000; //LB
-parameter LUI   = 6'b001111; //LUI
-parameter SB	= 6'b101000; //SB
-parameter LBU	= 6'b100100; //LBU
-parameter BEQ	= 6'b000100; //BEQ
-parameter BNE	= 6'b000101; //BNE
-parameter BGTZ	= 6'b000111; //BGTZ
-parameter BLEZ	= 6'b000110; //BLEZ
-
-// REGIMM Opcodes
-parameter BLTZ = 5'b00000; // BLTZ
-parameter BGEZ = 5'b00001; // BGEZ 
-
-// J-Type Opcodes
-parameter J     = 6'b000010;
-parameter JAL	= 6'b000011;
-
-// Other 
-parameter NOP   = 6'b000000;
-parameter RTYPE = 6'b000000;
-/******************************************/
+/****************ALUOPS******************/
+parameter ADD_OP 	= 6'b000000;
+parameter SUB_OP	= 6'b000001;
+parameter MULT_OP	= 6'b000010;		
+parameter DIV_OP	= 6'b000011;		
+parameter MFHI_OP	= 6'b000100;
+parameter MFLO_OP 	= 6'b000101;	
+parameter SLT_OP	= 6'b000110;
+parameter SLL_OP	= 6'b000111;
+parameter SLLV_OP	= 6'b001000;
+parameter SRL_OP	= 6'b001001;
+parameter SRLV_OP	= 6'b001010;
+parameter SRA_OP	= 6'b001011;
+parameter SRAV_OP	= 6'b001100;
+parameter AND_OP	= 6'b001101;
+parameter OR_OP		= 6'b001110;
+parameter XOR_OP	= 6'b001111;
+parameter NOR_OP	= 6'b010000;
+parameter JALR_OP	= 6'b010001;	
+parameter JR_OP		= 6'b010010;
+parameter LW_OP		= 6'b010011;
+parameter SW_OP		= 6'b010100;
+parameter LB_OP		= 6'b010101;
+parameter LUI_OP   	= 6'b010110;
+parameter SB_OP		= 6'b010111;
+parameter LBU_OP	= 6'b011000;
+parameter BEQ_OP	= 6'b011001;
+parameter BNE_OP	= 6'b011010;
+parameter BGTZ_OP	= 6'b011011;
+parameter BLEZ_OP	= 6'b011100;
+parameter BLTZ_OP 	= 6'b011101;
+parameter BGEZ_OP  	= 6'b011110;
+parameter J_OP 		= 6'b011111;
+parameter JAL_OP    	= 6'b100000;
+parameter NOP_OP	= 6'b100001;
+/**************************************/
 
 // Input Data
 input wire [31:0] pc;
@@ -82,114 +57,181 @@ input wire rwd;
 output reg [31:0] aluOut;
 output reg [31:0] rBOut;
 
-reg branch_taken;
+output [31:0] pc_effective;
+output do_branch;
+
+reg branch_output;
+wire branch_taken;
+wire [31:0] branch_or_pc;
+
+reg [31:0] branch_effective_address;
+reg [31:0] jump_effective_address;
 
 // Interal Registers
 reg [31:0] hi;
 reg [31:0] lo;
 
+assign pc_effective = (jp) ? jump_effective_address : branch_effective_address;
+assign do_branch = (branch_output & br) | jp;
+
 always @(aluop, rA, rB)
 begin : EXECUTE
 	case (aluop)
-		ADD: begin
+		ADD_OP: begin
 			case (aluinb)
 				1'b0: aluOut = rA + rB;
 				1'b1: aluOut = rA + { { 16{ insn[15] } }, insn[15:0] };
 			endcase
 		end
-		SUB: begin
+		SUB_OP: begin
 			case (aluinb)
 				1'b0: aluOut = rA - rB;
 				1'b1: aluOut = rA - { { 16{ insn[15] } }, insn[15:0] };
 			endcase
 		end
-		MULT: begin
+		MULT_OP: begin
 			lo = rA * rB;
+			aluOut = 32'hx;
 		end
-		DIV: begin
+		DIV_OP: begin
 			lo = rA / rB;
 			hi = rA % rB;
+			aluOut = 32'hx;
 		end
-		MFHI: begin
+		MFHI_OP: begin
 			aluOut = hi;
 		end
-		MFLO: begin
+		MFLO_OP: begin
 			aluOut = lo;
 		end
-		SLT: begin
+		SLT_OP: begin
 			if (rA < rB) begin
 				aluOut = 32'h1;
 			end else begin
 				aluOut = 32'h0;
 			end
 		end
-		SLL: begin
-			//aluOut = rB << insn[15:6]
-			// TODO, need reg sa
-			// SLLV also implemented here
+		SLL_OP: begin
+			aluOut = rB << insn[10:6];
 		end
-		SRL: begin
-			// TODO, need reg sa
-			// SRLV also implemented here
+		SLLV_OP: begin
+			aluOut = rB << rA;
 		end
-		SRA: begin
-			// TODO, need reg sa
-			// SRAV also implmented here
+		SRL_OP: begin
+			aluOut = rB >> insn[10:6];
 		end
-		AND: begin
+		SRLV_OP: begin
+			aluOut = rB >> rA;
+		end
+		SRA_OP: begin	
+			aluOut = rB >>> insn[10:6];
+		end
+		AND_OP: begin
 			case (aluinb)
 				1'b0: aluOut = rA & rB;
 				1'b1: aluOut = rA & { { 16{ insn[15] } }, insn[15:0] };
 			endcase
 		end
-		OR: begin
+		OR_OP: begin
 			case (aluinb)
 				1'b0: aluOut = rA | rB;
 				1'b1: aluOut = rA | { { 16{ insn[15] } }, insn[15:0] };
 			endcase
 		end
-		XOR: begin
+		XOR_OP: begin
 			case (aluinb)
 				1'b0: aluOut = rA ^ rB;
 				1'b1: aluOut = rA ^ { { 16{ insn[15] } }, insn[15:0] };
 			endcase
 		end
-		NOR: begin
+		NOR_OP: begin
 				aluOut = ~(rA | rB);
 		end
-		J: begin
-			//TODO
+		J_OP: begin
+			jump_effective_address = {pc[31:28], insn[25:0], 2'b00};
 		end
-		JR: begin
-			aluOut = rA;
+		JAL_OP: begin
 			//TODO
-		end
-		JALR: begin
+			jump_effective_address = {pc[31:28], insn[25:0], 2'b00};
 			aluOut = pc + 8;
-			//TODO
 		end
-		LW: begin
-			// Computes address of data to load from DMEM
+		JALR_OP: begin
+			//TODO
+			jump_effective_address = rA;
+			aluOut = pc + 8;
+		end
+		JR_OP: begin
+			jump_effective_address = rA;
+		end
+		LW_OP: begin
 			aluOut = rA + { { 16{ insn[15] } }, insn[15:0] };
 		end
-		LB: begin
-			// Computes address of data BYTE to load from DMEM
+		LB_OP: begin
 			aluOut = rA + { { 16{ insn[15] } }, insn[15:0] };
 			//TODO: modify DM Access Size to allow BYTE access instead of WORD
 		end
-		LUI: begin
+		LUI_OP: begin
 			aluOut = insn[15:0] << 16;
 		end
-		SW: begin
-			// Computes address to store data in DMEM
+		SW_OP: begin
 			aluOut = rA + { { 16{ insn[15] } }, insn[15:0] };
 		end
-		SB: begin
+		SB_OP: begin
 			// Computes address to store BYTE of data in DMEM
 			aluOut = rA + { { 16{ insn[15] } }, insn[15:0] };
 			//TODO: modify DM access size to allow BYTE access instead of WORD
 		end
-		//TODO: Branches
+		LBU_OP: begin
+			//TODO
+		end
+		BEQ_OP: begin
+			if (rA == rB) begin
+				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
+				branch_output = 1;           	
+			end else begin
+				branch_output = 0;
+			end
+		end
+		BNE_OP: begin
+			if (rA != rB) begin
+				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
+				branch_output = 1;
+			end else begin
+				branch_output = 0;
+			end
+		end
+		BGTZ_OP: begin
+			if (rA > 32'h0) begin
+				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
+				branch_output = 1;
+			end else begin
+				branch_output = 0;
+			end
+		end
+		BLEZ_OP: begin
+			if (rA <= 32'h0) begin
+				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
+				branch_output = 1;
+			end else begin
+				branch_output = 0;
+			end
+		end
+		BLTZ_OP: begin
+			if (rA < 32'h0) begin
+				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
+				branch_output = 1;
+			end else begin
+				branch_output = 0;
+			end
+		end
+		BGEZ_OP: begin
+			if (rA >= 32'h0) begin
+				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
+				branch_output = 1;
+			end else begin
+				branch_output = 0;
+			end
+		end
 	endcase
 end
 endmodule

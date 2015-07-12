@@ -93,6 +93,8 @@ wire rwd;
 wire [31:0] aluOut;
 wire [31:0] rBOut;
 wire dmwe_XM_inverted;
+wire [31:0] pc_effective;
+wire do_branch;
 
 //Data Wires (From WRITEBACK Stage)
 wire [4:0] insn_to_d;
@@ -119,7 +121,9 @@ fetch #(.base_addr(base_addr)) F0 (
 	.stall(stall),
 	.address(i_address),
 	.access_size(i_access_size),
-	.i_mem_enable(i_mem_enable)
+	.i_mem_enable(i_mem_enable),
+	.pc_effective(pc_effective),
+	.do_branch(do_branch)
 );
 
 decode D0 (
@@ -154,7 +158,9 @@ execute E0 (
 	.rdst(rdst_DX),
 	.rwd(rwd_DX),
 	.aluOut(aluOut),
-	.rBOut(rBOut)
+	.rBOut(rBOut),
+	.pc_effective(pc_effective),
+	.do_branch(do_branch)
 );
 
 memory DM (
@@ -213,7 +219,7 @@ initial begin
 	
 	// Initialize REGFILE
 	for (i = 0; i < 32; i = i + 1) begin
-		D0.R0.REGFILE[i] = i;
+		D0.R0.REGFILE[i] = 32'b0;
 	end
 
 	// Set SP (r29) to last valid address in Memory region

@@ -77,7 +77,7 @@ begin : READ
 		if (access_size == 2'b00) begin
 			//read_total_words = 1;
 
-			busy <= 1;
+			busy = 1;
 			data_out[7:0] 	<= mem[address - base_addr + 3];
 			data_out[15:8] 	<= mem[address - base_addr + 2];
 			data_out[23:16] <= mem[address - base_addr + 1];
