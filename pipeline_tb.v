@@ -103,6 +103,8 @@ wire [31:0] dataout;
 //Data Wires (From MEMORY Stage)
 wire [31:0] d_data_out;
 
+integer stall_count;
+
 memory IM (
 	.clock(clock),
 	.address(i_address),
@@ -199,6 +201,8 @@ initial begin
 
 	F0.pc = base_addr - 32'h4;
 
+	stall_count = 0;
+
 	// Read input file and fill IMEM
 	file = $fopen("SimpleIf.x", "r");
 	while($feof(file) == 0) begin
@@ -237,6 +241,12 @@ assign dmwe_XM_inverted = ~dmwe_XM;
 
 always @(posedge clock) begin
 	
+	if (stall_count == 0) begin
+		stall = 0;
+	end else begin
+		stall = 1;
+	end
+
 	pc_DX <= pc_FD;
 	IR_DX <= i_data_out;
 	rA_DX <= rA;
@@ -275,6 +285,11 @@ always @(posedge clock) begin
 	rwe_MW <= rwe_XM;
 	rdst_MW <= rdst_XM;
 	rwd_MW <= rwd_XM;
+
+	stall_count = stall_count + 1;
+	if (stall_count == 4) begin
+		stall_count = 0;
+	end
 end
 
 always

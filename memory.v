@@ -21,6 +21,8 @@ integer words_read = 0;
 
 reg [7:0] mem[0:memory_depth];
 
+// TODO: Add BURST Mode ability
+
 always @(posedge clock)
 begin : WRITE
 	if (!rw && enable) begin

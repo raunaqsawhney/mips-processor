@@ -33,7 +33,7 @@ parameter BLEZ_OP	= 6'b011100;
 parameter BLTZ_OP 	= 6'b011101;
 parameter BGEZ_OP  	= 6'b011110;
 parameter J_OP 		= 6'b011111;
-parameter JAL_OP    	= 6'b100000;
+parameter JAL_OP    = 6'b100000;
 parameter NOP_OP	= 6'b100001;
 /**************************************/
 
@@ -57,13 +57,12 @@ input wire rwd;
 output reg [31:0] aluOut;
 output reg [31:0] rBOut;
 
+// Output wires into FETCH Module
 output [31:0] pc_effective;
 output do_branch;
 
+// Used to compute branche/jumps
 reg branch_output;
-wire branch_taken;
-wire [31:0] branch_or_pc;
-
 reg [31:0] branch_effective_address;
 reg [31:0] jump_effective_address;
 
@@ -71,6 +70,8 @@ reg [31:0] jump_effective_address;
 reg [31:0] hi;
 reg [31:0] lo;
 
+// Compute effective PC for Jumps or Branches and set signals
+// that are read in FETCH Module for PC
 assign pc_effective = (jp) ? jump_effective_address : branch_effective_address;
 assign do_branch = (branch_output & br) | jp;
 
@@ -137,6 +138,9 @@ begin : EXECUTE
 		SRA_OP: begin	
 			aluOut = rB >>> insn[10:6];
 		end
+		SRAV_OP: begin	
+			aluOut = rB >>> rA;
+		end
 		AND_OP: begin
 			case (aluinb)
 				1'b0: aluOut = rA & rB;
@@ -193,7 +197,7 @@ begin : EXECUTE
 			//TODO: modify DM access size to allow BYTE access instead of WORD
 		end
 		LBU_OP: begin
-			//TODO
+			aluOut = rA + { { 16{ 1'b0 } }, insn[15:0] };
 		end
 		BEQ_OP: begin
 			if (rA == rB) begin

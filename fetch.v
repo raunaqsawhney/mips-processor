@@ -2,9 +2,14 @@ module fetch (clock, pc_out, rw, stall, address, access_size, i_mem_enable, pc_e
 
 input wire clock;
 input wire stall;
+
+// Wires from EXECUTE for Branch/Jump PC and 
+// Signal do_branch is used to detect if a branch 
+// is done or not
 input wire [31:0] pc_effective;
 input wire do_branch;
 
+// Outputs of FETCH Stage into DECODE
 output reg [31:0] pc_out;
 output reg rw;
 output reg [31:0] address;
@@ -14,8 +19,11 @@ output reg i_mem_enable;
 reg [31:0] pc;
 
 parameter base_addr = 32'h80020000;
-parameter word_size = 2'b00;
+parameter word_size = 2'b00;	// Default: 1 Word Access Size
 
+// Fetch Module sensitive to a new PC or STALL Signal
+// In the case of STALL, must not FETCH new PC and 
+// must disable IMEM. Otherwise, always read FROM IMEM
 always @(stall, pc)
 begin
 	case(stall)
@@ -31,6 +39,9 @@ begin
 	address <= pc;
 end
 
+// Output the FETCHED PC on a clock edge
+// If a branch was taken, then set PC to 
+// Effective PC computed in EXECUTE Stage
 always @(posedge clock)
 begin
 	case(stall)

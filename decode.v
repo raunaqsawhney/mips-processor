@@ -103,24 +103,27 @@ parameter NOP_OP	= 6'b100001;
 input clock;
 input wire [31:0] pc;
 input wire [31:0] insn;
-input wire [31:0] rd;
-input wire [4:0] d;
+input wire [31:0] rd;		// Input rd of REGFILE (wired to R0 module)
+input wire [4:0] d;			// Input d of REGFILE (wired to R0 module)
 
-output [31:0] rA;
-output [31:0] rB;
+output [31:0] rA;			// Output rA of DECODE
+output [31:0] rB;			// Output rB of DECODE
 
-output reg br;
-output reg jp;
-output reg aluinb;
-output reg [5:0] aluop;
-output reg dmwe;
-output reg rwe;
-output reg rdst;
-output reg rwd;
+// Control Signals
+output reg br;				//branch
+output reg jp;				//Jump
+output reg aluinb;			//ALU B Input bridged straight across E-Stage to DMEM
+output reg [5:0] aluop;		//ALU OP Code (a subset of DECODE Opcodes)
+output reg dmwe;			//DM Write Enable
+output reg rwe;				//REGFILE Write Enable
+output reg rdst;			//d input to REGFILE (either rt or rd)
+output reg rwd;				//Write data from ALU or DMEM
 
+// Registers for holding s1 s2 inputs to REGFILE
 reg [4:0] s1;
 reg [4:0] s2;
 
+// Include REGFILE Module
 regfile R0 (
 	.clock(clock),
 	.s1(s1),
@@ -132,15 +135,18 @@ regfile R0 (
 	.rwe(rwe)
 );
 
+// Decode Module is sensitive to an incoming insn
+// Decode only when a new instruction is fetched
 always @(insn)
 begin : DECODE
 	if (insn == 32'h0) begin
-		// NOP
+		// Handle the NOP case by de-asserting the branch and jump
+		// Signals, so that there is no infinite branch or jump conditions
 		aluop = NOP_OP;
 		br = 0;
 		jp = 0;
 	end else if (insn[31:26] == RTYPE || insn[31:26] == MUL_OP) begin
-		// Instruction R-Type
+		// The instruction is RTPYE
 		case(insn[5:0])
 			ADD: begin
 				br = 0;
@@ -152,8 +158,8 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 
-				s1 = insn[25:21];	//rs
-				s2 = insn[20:16];	//rt
+				s1 = insn[25:21];	
+				s2 = insn[20:16];
 			end
 			ADDU: begin
 				br = 0;
@@ -165,8 +171,8 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 
-				s1 = insn[25:21];	//rs
-				s2 = insn[20:16];	//rt
+				s1 = insn[25:21];	
+				s2 = insn[20:16];	
 			end
 			SUB: begin
 				br = 0;
@@ -178,8 +184,8 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 
-				s1 = insn[25:21];	//rs
-				s2 = insn[20:16];	//rt
+				s1 = insn[25:21];	
+				s2 = insn[20:16];	
 			end
 			SUBU: begin
 				br = 0;
@@ -191,8 +197,8 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 
-				s1 = insn[25:21];	//rs
-				s2 = insn[20:16];	//rt
+				s1 = insn[25:21];	
+				s2 = insn[20:16];	
 			end
 			MUL_FUNC: begin
 				br = 0;
@@ -204,8 +210,8 @@ begin : DECODE
 				rdst = 1'hx;
 				rwd = 1'hx;
 
-				s1 = insn[25:21];	//rs
-				s2 = insn[20:16];	//rt
+				s1 = insn[25:21];	
+				s2 = insn[20:16];	
 			end
 			MULT: begin
 				br = 0;
@@ -217,8 +223,8 @@ begin : DECODE
 				rdst = 1'hx;
 				rwd = 1'hx;
 
-				s1 = insn[25:21];	//rs
-				s2 = insn[20:16];	//rt
+				s1 = insn[25:21];	
+				s2 = insn[20:16];	
 			end
 			MULTU: begin
 				br = 0;
@@ -230,8 +236,8 @@ begin : DECODE
 				rdst = 1'hx;
 				rwd = 1'hx;
 
-				s1 = insn[25:21];	//rs
-				s2 = insn[20:16];	//rt
+				s1 = insn[25:21];	
+				s2 = insn[20:16];	
 			end
 			DIV: begin
 				br = 0;
@@ -243,8 +249,8 @@ begin : DECODE
 				rdst = 1'hx;		
 				rwd = 1'hx;
 
-				s1 = insn[25:21];	//rs
-				s2 = insn[20:16];	//rt
+				s1 = insn[25:21];	
+				s2 = insn[20:16];	
 			end
 			DIVU: begin
 				br = 0;
@@ -256,8 +262,8 @@ begin : DECODE
 				rdst = 1'hx;		
 				rwd = 1'hx;
 
-				s1 = insn[25:21];	//rs
-				s2 = insn[20:16];	//rt
+				s1 = insn[25:21];	
+				s2 = insn[20:16];	
 			end
 			MFHI: begin
 				br = 0;
@@ -295,8 +301,8 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 
-				s1 = insn[25:21];	//rs
-				s2 = insn[20:16];	//rt
+				s1 = insn[25:21];	
+				s2 = insn[20:16];	
 			end
 			SLTU: begin
 				br = 0;
@@ -308,8 +314,8 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 
-				s1 = insn[25:21];	//rs
-				s2 = insn[20:16];	//rt
+				s1 = insn[25:21];	
+				s2 = insn[20:16];	
 			end
 			SLL: begin
 				br = 0;
@@ -321,8 +327,8 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 
-				s1 = 5'h0;		//rs
-				s2 = insn[20:16];	//rt
+				s1 = 5'h0;		
+				s2 = insn[20:16];	
 			end
 			SLLV: begin
 				br = 0;
@@ -334,8 +340,8 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 
-				s1 = insn[25:21];	//rs
-				s2 = insn[20:16];	//rt
+				s1 = insn[25:21];	
+				s2 = insn[20:16];	
 			end
 			SRL: begin
 				br = 0;
@@ -347,8 +353,8 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 
-				s1 = 5'h0;			//rs
-				s2 = insn[20:16];	//rt
+				s1 = 5'h0;			
+				s2 = insn[20:16];	
 			end
 			SRLV: begin
 				br = 0;
@@ -360,8 +366,8 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 
-				s1 = insn[25:21];	//rs
-				s2 = insn[20:16];	//rt
+				s1 = insn[25:21];	
+				s2 = insn[20:16];	
 			end
 			SRA: begin
 				br = 0;
@@ -373,8 +379,8 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 
-				s1 = 5'h0;			//rt
-				s2 = insn[20:16];	//rt
+				s1 = 5'h0;			
+				s2 = insn[20:16];	
 			end
 			SRAV: begin
 				br = 0;
@@ -456,8 +462,7 @@ begin : DECODE
 			end
 		endcase
 	end else if (insn[31:26] != RTYPE && insn[31:27] != 5'b00001 && insn[31:26] != 6'b000001) begin
-		// Instruction is I-TYPE
-
+		// Instruction is ITYPE
 		case (insn[31:26])
 			ADDI: begin
 				br = 0;
@@ -682,8 +687,7 @@ begin : DECODE
 			end
 		endcase
 	end else if (insn[31:6] == 6'b000001) begin
-		// REGIMM
-
+		// REGIMM Special Instructions (Only BLTZ and BGEZ)
 		case (insn[20:16])
 			BLTZ: begin
 				br = 1;
@@ -713,8 +717,7 @@ begin : DECODE
 			end
 		endcase
 	end else if (insn[31:27] == 5'b00001) begin
-
-		// Instruction is J-Type
+		// Instruction is JType (Without Registers)
 		case (insn[31:26])
 			J: begin
 				br = 0;
