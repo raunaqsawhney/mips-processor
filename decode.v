@@ -137,6 +137,8 @@ begin : DECODE
 	if (insn == 32'h0) begin
 		// NOP
 		aluop = NOP_OP;
+		br = 0;
+		jp = 0;
 	end else if (insn[31:26] == RTYPE || insn[31:26] == MUL_OP) begin
 		// Instruction R-Type
 		case(insn[5:0])

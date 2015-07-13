@@ -105,11 +105,22 @@ begin : EXECUTE
 			aluOut = lo;
 		end
 		SLT_OP: begin
-			if (rA < rB) begin
-				aluOut = 32'h1;
-			end else begin
-				aluOut = 32'h0;
-			end
+			case (aluinb)
+				1'b0: begin
+					if (rA < rB) begin
+						aluOut = 32'h1;
+					end else begin
+						aluOut = 32'h0;
+					end
+				end
+				1'b1: begin
+					if (rA < insn[15:0]) begin
+						aluOut = 32'h1;
+					end else begin
+						aluOut = 32'h0;
+					end
+				end
+			endcase
 		end
 		SLL_OP: begin
 			aluOut = rB << insn[10:6];
