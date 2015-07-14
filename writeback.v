@@ -19,7 +19,7 @@ input wire rwd;
 output reg [31:0] dataout;
 output reg [4:0] insn_to_d; // input d to regfile based on insn in writeback stage
 
-always @(rwd, o, d)
+always @(rwd, rdst)
 begin : WRITEBACK
 	case (rwd)
 		1'b0: dataout <= o; // ALU operation (output data from ALU to REGFILE)

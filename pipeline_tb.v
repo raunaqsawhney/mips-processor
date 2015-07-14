@@ -242,9 +242,9 @@ assign dmwe_XM_inverted = ~dmwe_XM;
 always @(posedge clock) begin
 	
 	if (stall_count == 0) begin
-		stall = 0;
+		stall <= 0;
 	end else begin
-		stall = 1;
+		stall <= 1;
 	end
 
 	pc_DX <= pc_FD;
@@ -286,9 +286,9 @@ always @(posedge clock) begin
 	rdst_MW <= rdst_XM;
 	rwd_MW <= rwd_XM;
 
-	stall_count = stall_count + 1;
+	stall_count <= stall_count + 1;
 	if (stall_count == 4) begin
-		stall_count = 0;
+		stall_count <= 0;
 	end
 end
 

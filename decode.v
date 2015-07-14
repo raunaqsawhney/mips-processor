@@ -142,9 +142,18 @@ begin : DECODE
 	if (insn == 32'h0) begin
 		// Handle the NOP case by de-asserting the branch and jump
 		// Signals, so that there is no infinite branch or jump conditions
-		aluop = NOP_OP;
 		br = 0;
 		jp = 0;
+		aluinb = 1'hx;
+		aluop = NOP_OP;
+		dmwe = 0;
+		rwe = 0;
+		rdst = 1'hx;
+		rwd = 1'hx;
+
+		s1 = 5'h0;
+		s2 = 5'h0;
+		
 	end else if (insn[31:26] == RTYPE || insn[31:26] == MUL_OP) begin
 		// The instruction is RTPYE
 		case(insn[5:0])
