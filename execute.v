@@ -168,12 +168,12 @@ begin : EXECUTE
 		JAL_OP: begin
 			//TODO
 			jump_effective_address = {pc[31:28], insn[25:0], 2'b00};
-			aluOut = pc + 8;
+			aluOut = pc + 32'h8;
 		end
 		JALR_OP: begin
 			//TODO
 			jump_effective_address = rA;
-			aluOut = pc + 8;
+			aluOut = pc + 32'h4;
 		end
 		JR_OP: begin
 			jump_effective_address = rA;

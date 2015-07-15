@@ -204,7 +204,7 @@ initial begin
 	stall_count = 0;
 
 	// Read input file and fill IMEM
-	file = $fopen("SimpleIf.x", "r");
+	file = $fopen("Swap.x", "r");
 	while($feof(file) == 0) begin
 		scan_file = $fscanf(file, "%x", read_data);
 		

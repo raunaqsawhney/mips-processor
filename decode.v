@@ -450,8 +450,8 @@ begin : DECODE
 				aluop = JALR_OP;
 				dmwe = 0;
 				rwe = 1;
-				rdst = 1;
-				rwd = 0;
+				rdst = 1'hx;
+				rwd = 0;	//ALU outputs PC + 8 to be writteb back to rA (r31)
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
@@ -744,9 +744,9 @@ begin : DECODE
 				aluinb = 1'hx;
 				aluop = JAL_OP;
 				dmwe = 0;
-				rwe = 0;
+				rwe = 1;
 				rdst = 1'hx;
-				rwd = 1'hx;
+				rwd = 0;	//ALU outputs PC + 8 to be writteb back to rA (r31)
 			end
 		endcase
 	end

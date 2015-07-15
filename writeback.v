@@ -1,5 +1,8 @@
 module writeback(o, d, dataout, insn, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, insn_to_d);
 
+parameter JAL_OP    	= 6'b100000;
+parameter JALR_OP	= 6'b010001;
+
 // Input Data
 input wire [31:0] o; //Data Out of ALU (not a mem operation)
 input wire [31:0] d; //Data Out of DMEM 
@@ -30,5 +33,10 @@ begin : WRITEBACK
 		1'b0: insn_to_d <= insn[20:16]; //rt
 		1'b1: insn_to_d <= insn[15:11]; //rd
 	endcase
+
+	if (aluop == JAL_OP || aluop == JALR_OP) begin
+		insn_to_d <= 5'h1F;	//rA (r31 in REGFILE), dataout should be PC + 8 from E-Stage
+	end
+
 end
 endmodule
