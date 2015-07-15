@@ -75,7 +75,7 @@ reg [31:0] lo;
 assign pc_effective = (jp) ? jump_effective_address : branch_effective_address;
 assign do_branch = (branch_output & br) | jp;
 
-always @(aluop, rA, rB)
+always @(insn, aluop, rA, rB)
 begin : EXECUTE
 	case (aluop)
 		ADD_OP: begin
