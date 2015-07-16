@@ -1,6 +1,7 @@
 module pipeline_tb;
 
 parameter base_addr = 32'h80020000;
+parameter NOP_OP	= 6'b100001;
 
 // File IO 
 integer file;
@@ -89,6 +90,9 @@ wire rwe;
 wire rdst;
 wire rwd;
 
+
+reg do_mx_bypass;
+
 // Data Wires (From EXECUTE Stage)
 wire [31:0] aluOut;
 wire [31:0] rBOut;
@@ -104,6 +108,7 @@ wire [31:0] dataout;
 wire [31:0] d_data_out;
 
 integer stall_count;
+reg [4:0] rd_XM, rd_MW;
 
 memory IM (
 	.clock(clock),
@@ -162,7 +167,9 @@ execute E0 (
 	.aluOut(aluOut),
 	.rBOut(rBOut),
 	.pc_effective(pc_effective),
-	.do_branch(do_branch)
+	.do_branch(do_branch),
+	.mx_bypass(aluOut_XM),
+	.do_mx_bypass(do_mx_bypass)
 );
 
 memory DM (
@@ -204,7 +211,7 @@ initial begin
 	stall_count = 0;
 
 	// Read input file and fill IMEM
-	file = $fopen("Swap.x", "r");
+	file = $fopen("SimpleAddTest.x", "r");
 	while($feof(file) == 0) begin
 		scan_file = $fscanf(file, "%x", read_data);
 		
@@ -241,11 +248,17 @@ assign dmwe_XM_inverted = ~dmwe_XM;
 
 always @(posedge clock) begin
 	
-	if (stall_count == 0) begin
-		stall <= 0;
+	case (rwd_DX)
+		1'b0: rd_XM = IR_DX[20:16]; //rt
+		1'b1: rd_XM = IR_DX[15:11]; //rd 
+	endcase
+
+	if (IR_DX[25:21] == rd_XM) begin
+		do_mx_bypass = 1;
 	end else begin
-		stall <= 1;
+		do_mx_bypass = 0;
 	end
+
 
 	pc_DX <= pc_FD;
 	IR_DX <= i_data_out;
@@ -286,10 +299,15 @@ always @(posedge clock) begin
 	rdst_MW <= rdst_XM;
 	rwd_MW <= rwd_XM;
 
-	stall_count <= stall_count + 1;
-	if (stall_count == 4) begin
-		stall_count <= 0;
-	end
+	
+
+	// Debug Prints
+	$display("\n\nF/D: PC = %x | IR = %x", pc_FD, i_data_out);
+	$display("D/X: PC = %x | IR = %x", pc_DX, IR_DX);
+	$display("X/M: PC = %x | IR = %x", pc_XM, IR_XM);
+	$display("M/W: PC = %x | IR = %x", pc_MW, IR_MW);
+
+
 end
 
 always

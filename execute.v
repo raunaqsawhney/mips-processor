@@ -1,4 +1,4 @@
-module execute (pc, rA, rB, insn, aluOut, rBOut, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, pc_effective, do_branch);
+module execute (pc, rA, rB, insn, aluOut, rBOut, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, pc_effective, do_branch, mx_bypass, do_mx_bypass);
 
 /****************ALUOPS******************/
 parameter ADD_OP 	= 6'b000000;
@@ -42,6 +42,8 @@ input wire [31:0] pc;
 input wire [31:0] insn;
 input wire [31:0] rA;
 input wire [31:0] rB;
+input wire [31:0] mx_bypass;
+input wire do_mx_bypass;
 
 // Input Controls
 input wire br;
@@ -70,6 +72,8 @@ reg [31:0] jump_effective_address;
 reg [31:0] hi;
 reg [31:0] lo;
 
+reg [31:0] rA_REG;
+
 // Compute effective PC for Jumps or Branches and set signals
 // that are read in FETCH Module for PC
 assign pc_effective = (jp) ? jump_effective_address : branch_effective_address;
@@ -77,26 +81,31 @@ assign do_branch = (branch_output & br) | jp;
 
 always @(insn, aluop, rA, rB)
 begin : EXECUTE
+	case (do_mx_bypass) 
+		1'b0: rA_REG = rA;
+		1'b1: rA_REG = mx_bypass;
+	endcase
+		
 	case (aluop)
 		ADD_OP: begin
 			case (aluinb)
-				1'b0: aluOut = rA + rB;
-				1'b1: aluOut = rA + { { 16{ insn[15] } }, insn[15:0] };
+				1'b0: aluOut = rA_REG + rB;
+				1'b1: aluOut = rA_REG + { { 16{ insn[15] } }, insn[15:0] };
 			endcase
 		end
 		SUB_OP: begin
 			case (aluinb)
-				1'b0: aluOut = rA - rB;
-				1'b1: aluOut = rA - { { 16{ insn[15] } }, insn[15:0] };
+				1'b0: aluOut = rA_REG - rB;
+				1'b1: aluOut = rA_REG - { { 16{ insn[15] } }, insn[15:0] };
 			endcase
 		end
 		MULT_OP: begin
-			lo = rA * rB;
+			lo = rA_REG * rB;
 			aluOut = 32'hx;
 		end
 		DIV_OP: begin
-			lo = rA / rB;
-			hi = rA % rB;
+			lo = rA_REG / rB;
+			hi = rA_REG % rB;
 			aluOut = 32'hx;
 		end
 		MFHI_OP: begin
@@ -108,14 +117,14 @@ begin : EXECUTE
 		SLT_OP: begin
 			case (aluinb)
 				1'b0: begin
-					if (rA < rB) begin
+					if (rA_REG < rB) begin
 						aluOut = 32'h1;
 					end else begin
 						aluOut = 32'h0;
 					end
 				end
 				1'b1: begin
-					if (rA < insn[15:0]) begin
+					if (rA_REG < insn[15:0]) begin
 						aluOut = 32'h1;
 					end else begin
 						aluOut = 32'h0;
@@ -127,40 +136,40 @@ begin : EXECUTE
 			aluOut = rB << insn[10:6];
 		end
 		SLLV_OP: begin
-			aluOut = rB << rA;
+			aluOut = rB << rA_REG;
 		end
 		SRL_OP: begin
 			aluOut = rB >> insn[10:6];
 		end
 		SRLV_OP: begin
-			aluOut = rB >> rA;
+			aluOut = rB >> rA_REG;
 		end
 		SRA_OP: begin	
 			aluOut = rB >>> insn[10:6];
 		end
 		SRAV_OP: begin	
-			aluOut = rB >>> rA;
+			aluOut = rB >>> rA_REG;
 		end
 		AND_OP: begin
 			case (aluinb)
-				1'b0: aluOut = rA & rB;
-				1'b1: aluOut = rA & { { 16{ insn[15] } }, insn[15:0] };
+				1'b0: aluOut = rA_REG & rB;
+				1'b1: aluOut = rA_REG & { { 16{ insn[15] } }, insn[15:0] };
 			endcase
 		end
 		OR_OP: begin
 			case (aluinb)
-				1'b0: aluOut = rA | rB;
-				1'b1: aluOut = rA | { { 16{ insn[15] } }, insn[15:0] };
+				1'b0: aluOut = rA_REG | rB;
+				1'b1: aluOut = rA_REG | { { 16{ insn[15] } }, insn[15:0] };
 			endcase
 		end
 		XOR_OP: begin
 			case (aluinb)
-				1'b0: aluOut = rA ^ rB;
-				1'b1: aluOut = rA ^ { { 16{ insn[15] } }, insn[15:0] };
+				1'b0: aluOut = rA_REG ^ rB;
+				1'b1: aluOut = rA_REG ^ { { 16{ insn[15] } }, insn[15:0] };
 			endcase
 		end
 		NOR_OP: begin
-				aluOut = ~(rA | rB);
+				aluOut = ~(rA_REG | rB);
 		end
 		J_OP: begin
 			jump_effective_address = {pc[31:28], insn[25:0], 2'b00};
@@ -172,35 +181,35 @@ begin : EXECUTE
 		end
 		JALR_OP: begin
 			//TODO
-			jump_effective_address = rA;
+			jump_effective_address = rA_REG;
 			aluOut = pc + 32'h4;
 		end
 		JR_OP: begin
-			jump_effective_address = rA;
+			jump_effective_address = rA_REG;
 		end
 		LW_OP: begin
-			aluOut = rA + { { 16{ insn[15] } }, insn[15:0] };
+			aluOut = rA_REG + { { 16{ insn[15] } }, insn[15:0] };
 		end
 		LB_OP: begin
-			aluOut = rA + { { 16{ insn[15] } }, insn[15:0] };
+			aluOut = rA_REG + { { 16{ insn[15] } }, insn[15:0] };
 			//TODO: modify DM Access Size to allow BYTE access instead of WORD
 		end
 		LUI_OP: begin
 			aluOut = insn[15:0] << 16;
 		end
 		SW_OP: begin
-			aluOut = rA + { { 16{ insn[15] } }, insn[15:0] };
+			aluOut = rA_REG + { { 16{ insn[15] } }, insn[15:0] };
 		end
 		SB_OP: begin
 			// Computes address to store BYTE of data in DMEM
-			aluOut = rA + { { 16{ insn[15] } }, insn[15:0] };
+			aluOut = rA_REG + { { 16{ insn[15] } }, insn[15:0] };
 			//TODO: modify DM access size to allow BYTE access instead of WORD
 		end
 		LBU_OP: begin
-			aluOut = rA + { { 16{ 1'b0 } }, insn[15:0] };
+			aluOut = rA_REG + { { 16{ 1'b0 } }, insn[15:0] };
 		end
 		BEQ_OP: begin
-			if (rA == rB) begin
+			if (rA_REG == rB) begin
 				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
 				branch_output = 1;           	
 			end else begin
@@ -208,7 +217,7 @@ begin : EXECUTE
 			end
 		end
 		BNE_OP: begin
-			if (rA != rB) begin
+			if (rA_REG != rB) begin
 				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
 				branch_output = 1;
 			end else begin
@@ -216,7 +225,7 @@ begin : EXECUTE
 			end
 		end
 		BGTZ_OP: begin
-			if (rA > 32'h0) begin
+			if (rA_REG > 32'h0) begin
 				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
 				branch_output = 1;
 			end else begin
@@ -224,7 +233,7 @@ begin : EXECUTE
 			end
 		end
 		BLEZ_OP: begin
-			if (rA <= 32'h0) begin
+			if (rA_REG <= 32'h0) begin
 				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
 				branch_output = 1;
 			end else begin
@@ -232,7 +241,7 @@ begin : EXECUTE
 			end
 		end
 		BLTZ_OP: begin
-			if (rA < 32'h0) begin
+			if (rA_REG < 32'h0) begin
 				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
 				branch_output = 1;
 			end else begin
@@ -240,7 +249,7 @@ begin : EXECUTE
 			end
 		end
 		BGEZ_OP: begin
-			if (rA >= 32'h0) begin
+			if (rA_REG >= 32'h0) begin
 				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
 				branch_output = 1;
 			end else begin
