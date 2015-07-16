@@ -1,4 +1,4 @@
-module decode(clock, pc, insn, rA, rB, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, rd, d);
+module decode(clock, pc, insn, rA, rB, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, rd, d, rwe_wb);
 
 /****************OPCODES******************/
 // R-Type FUNC Codes
@@ -105,6 +105,7 @@ input wire [31:0] pc;
 input wire [31:0] insn;
 input wire [31:0] rd;		// Input rd of REGFILE (wired to R0 module)
 input wire [4:0] d;			// Input d of REGFILE (wired to R0 module)
+input wire rwe_wb;
 
 output [31:0] rA;			// Output rA of DECODE
 output [31:0] rB;			// Output rB of DECODE
@@ -132,7 +133,7 @@ regfile R0 (
 	.rs(rA),
 	.rt(rB),
 	.rd(rd),
-	.rwe(rwe)
+	.rwe(rwe_wb)
 );
 
 // Decode Module is sensitive to an incoming insn
@@ -584,8 +585,8 @@ begin : DECODE
 				aluop = SW_OP;
 				dmwe = 1;
 				rwe = 0;
-				rdst = 1'hx;
-				rwd = 1'hx;
+				//rdst = 1'hx;
+				//rwd = 1'hx;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];

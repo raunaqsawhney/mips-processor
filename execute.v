@@ -1,4 +1,4 @@
-module execute (pc, rA, rB, insn, aluOut, rBOut, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, pc_effective, do_branch, mx_bypass, do_mx_bypass);
+module execute (pc, rA, rB, insn, aluOut, rBOut, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, pc_effective, do_branch, mx_bypass, do_mx_bypass, wx_bypass, do_wx_bypass);
 
 /****************ALUOPS******************/
 parameter ADD_OP 	= 6'b000000;
@@ -44,6 +44,8 @@ input wire [31:0] rA;
 input wire [31:0] rB;
 input wire [31:0] mx_bypass;
 input wire do_mx_bypass;
+input wire [31:0] wx_bypass;
+input wire do_wx_bypass;
 
 // Input Controls
 input wire br;
@@ -79,13 +81,17 @@ reg [31:0] rA_REG;
 assign pc_effective = (jp) ? jump_effective_address : branch_effective_address;
 assign do_branch = (branch_output & br) | jp;
 
-always @(insn, aluop, rA, rB)
+always @(insn, aluop, rA, rB, mx_bypass, wx_bypass)
 begin : EXECUTE
-	case (do_mx_bypass) 
-		1'b0: rA_REG = rA;
-		1'b1: rA_REG = mx_bypass;
-	endcase
-		
+
+	if (do_mx_bypass == 1) begin
+		rA_REG = mx_bypass;
+	end else if (do_wx_bypass == 1) begin
+		rA_REG = wx_bypass;
+	end else begin
+		rA_REG = rA;
+	end
+
 	case (aluop)
 		ADD_OP: begin
 			case (aluinb)

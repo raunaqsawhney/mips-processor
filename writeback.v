@@ -1,4 +1,4 @@
-module writeback(o, d, dataout, insn, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, insn_to_d);
+module writeback(o, d, dataout, insn, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, insn_to_d, rwe_wb);
 
 parameter JAL_OP    	= 6'b100000;
 parameter JALR_OP	= 6'b010001;
@@ -21,6 +21,7 @@ input wire rwd;
 // Output Data
 output reg [31:0] dataout;
 output reg [4:0] insn_to_d; // input d to regfile based on insn in writeback stage
+output reg rwe_wb;
 
 always @(insn, rwd, rdst)
 begin : WRITEBACK
@@ -37,6 +38,7 @@ begin : WRITEBACK
 	if (aluop == JAL_OP || aluop == JALR_OP) begin
 		insn_to_d <= 5'h1F;	//rA (r31 in REGFILE), dataout should be PC + 8 from E-Stage
 	end
+	rwe_wb <= rwe;
 
 end
 endmodule

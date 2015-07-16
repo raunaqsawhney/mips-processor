@@ -90,8 +90,8 @@ wire rwe;
 wire rdst;
 wire rwd;
 
-
 reg do_mx_bypass;
+reg do_wx_bypass;
 
 // Data Wires (From EXECUTE Stage)
 wire [31:0] aluOut;
@@ -103,6 +103,7 @@ wire do_branch;
 //Data Wires (From WRITEBACK Stage)
 wire [4:0] insn_to_d;
 wire [31:0] dataout;
+wire rwe_wb;
 
 //Data Wires (From MEMORY Stage)
 wire [31:0] d_data_out;
@@ -148,7 +149,8 @@ decode D0 (
 	.rdst(rdst),
 	.rwd(rwd),
 	.rd(dataout),
-	.d(insn_to_d)
+	.d(insn_to_d),
+	.rwe_wb(rwe_wb)
 );
 
 execute E0 (
@@ -169,7 +171,9 @@ execute E0 (
 	.pc_effective(pc_effective),
 	.do_branch(do_branch),
 	.mx_bypass(aluOut_XM),
-	.do_mx_bypass(do_mx_bypass)
+	.do_mx_bypass(do_mx_bypass),
+	.wx_bypass(dataout),
+	.do_wx_bypass(do_wx_bypass)
 );
 
 memory DM (
@@ -196,7 +200,8 @@ writeback W0 (
 	.rwe(rwe_MW),
 	.rdst(rdst_MW),
 	.rwd(rwd_MW),
-	.insn_to_d(insn_to_d)
+	.insn_to_d(insn_to_d),
+	.rwe_wb(rwe_wb)
 );
 
 initial begin
@@ -249,8 +254,14 @@ assign dmwe_XM_inverted = ~dmwe_XM;
 always @(posedge clock) begin
 	
 	case (rwd_DX)
-		1'b0: rd_XM = IR_DX[20:16]; //rt
-		1'b1: rd_XM = IR_DX[15:11]; //rd 
+		1'b0: begin
+			rd_XM = IR_DX[20:16]; //rt
+			rd_MW = IR_XM[20:16]; //rt
+		end
+		1'b1: begin
+			rd_XM = IR_DX[15:11]; //rd 
+			rd_MW = IR_XM[15:11]; //rd
+		end
 	endcase
 
 	if (IR_DX[25:21] == rd_XM) begin
@@ -259,6 +270,11 @@ always @(posedge clock) begin
 		do_mx_bypass = 0;
 	end
 
+	if (IR_DX[25:21] == rd_MW) begin
+		do_wx_bypass = 1;
+	end else begin
+		do_wx_bypass = 0;
+	end
 
 	pc_DX <= pc_FD;
 	IR_DX <= i_data_out;
