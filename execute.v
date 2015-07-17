@@ -42,6 +42,7 @@ input wire [31:0] pc;
 input wire [31:0] insn;
 input wire [31:0] rA;
 input wire [31:0] rB;
+
 input wire [31:0] mx_bypass;
 input wire do_mx_bypass;
 input wire [31:0] wx_bypass;

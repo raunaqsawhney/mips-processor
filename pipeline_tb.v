@@ -92,6 +92,7 @@ wire rwd;
 
 reg do_mx_bypass;
 reg do_wx_bypass;
+reg do_wm_bypass;
 
 // Data Wires (From EXECUTE Stage)
 wire [31:0] aluOut;
@@ -109,7 +110,7 @@ wire rwe_wb;
 wire [31:0] d_data_out;
 
 integer stall_count;
-reg [4:0] rd_XM, rd_MW;
+reg [4:0] rd_XM, rd_MW, rd_MW_wm_bypass;
 
 memory IM (
 	.clock(clock),
@@ -214,7 +215,7 @@ initial begin
 	F0.pc = base_addr - 32'h4;
 
 	stall_count = 0;
-
+	
 	// Read input file and fill IMEM
 	file = $fopen("SimpleAddTest.x", "r");
 	while($feof(file) == 0) begin
@@ -314,8 +315,6 @@ always @(posedge clock) begin
 	rwe_MW <= rwe_XM;
 	rdst_MW <= rdst_XM;
 	rwd_MW <= rwd_XM;
-
-	
 
 	// Debug Prints
 	$display("\n\nF/D: PC = %x | IR = %x", pc_FD, i_data_out);
