@@ -23,6 +23,8 @@ wire [1:0] i_access_size;
 wire i_rw;
 wire i_mem_enable;
 wire i_busy;
+wire i_do_wm_bypass;
+wire [31:0] i_wm_bypass;
 
 //DMEM REGS
 wire [31:0] d_address;
@@ -90,9 +92,6 @@ wire rwe;
 wire rdst;
 wire rwd;
 
-reg do_mx_bypass;
-reg do_wx_bypass;
-
 // Data Wires (From EXECUTE Stage)
 wire [31:0] aluOut;
 wire [31:0] rBOut;
@@ -109,7 +108,11 @@ wire rwe_wb;
 wire [31:0] d_data_out;
 
 integer stall_count;
-reg [4:0] rd_XM, rd_MW;
+
+wire [4:0] rd_XM, rd_MW;
+wire do_mx_bypass;
+wire do_wx_bypass;
+wire do_wm_bypass;
 
 memory IM (
 	.clock(clock),
@@ -119,7 +122,9 @@ memory IM (
 	.rw(i_rw),
 	.enable(i_mem_enable),
 	.busy(i_busy),
-	.data_out(i_data_out)
+	.data_out(i_data_out),
+	.wm_bypass(i_wm_bypass),
+	.do_wm_bypass(i_do_wm_bypass)
 );
 
 fetch #(.base_addr(base_addr)) F0 (
@@ -184,7 +189,9 @@ memory DM (
 	.rw(dmwe_XM_inverted),	// Set DMEM RW (DMWE) to the dmwe control signal in XM Registers
 	.enable(d_mem_enable),
 	.busy(d_busy),
-	.data_out(d_data_out)
+	.data_out(d_data_out),
+	.wm_bypass(dataout),
+	.do_wm_bypass(do_wm_bypass)
 );
 
 writeback W0 (
@@ -203,6 +210,7 @@ writeback W0 (
 	.insn_to_d(insn_to_d),
 	.rwe_wb(rwe_wb)
 );
+
 
 initial begin
 	clock = 1;
@@ -249,33 +257,21 @@ initial begin
 	
 end
 
+// IMEM Does not need wm bypass, set values accordingly
+assign i_wm_bypass = 32'h0;
+assign i_do_wm_bypass = 1'b0;
+
 assign dmwe_XM_inverted = ~dmwe_XM;
+
+assign rd_XM = (rdst_XM) ? IR_XM[15:11] : IR_XM[20:16];
+assign rd_MW = (rdst_MW) ? IR_MW[15:11] : IR_MW[20:16];
+
+assign do_mx_bypass = rwe_XM & (IR_DX[25:21] == rd_XM);
+assign do_wx_bypass = rwe_MW & (IR_DX[25:21] == rd_MW);
+assign do_wm_bypass = rwe_MW & dmwe_XM & (IR_XM[20:16] == rd_MW);
 
 always @(posedge clock) begin
 	
-	case (rwd_DX)
-		1'b0: begin
-			rd_XM = IR_DX[20:16]; //rt
-			rd_MW = IR_XM[20:16]; //rt
-		end
-		1'b1: begin
-			rd_XM = IR_DX[15:11]; //rd 
-			rd_MW = IR_XM[15:11]; //rd
-		end
-	endcase
-
-	if (IR_DX[25:21] == rd_XM) begin
-		do_mx_bypass = 1;
-	end else begin
-		do_mx_bypass = 0;
-	end
-
-	if (IR_DX[25:21] == rd_MW) begin
-		do_wx_bypass = 1;
-	end else begin
-		do_wx_bypass = 0;
-	end
-
 	pc_DX <= pc_FD;
 	IR_DX <= i_data_out;
 	rA_DX <= rA;
