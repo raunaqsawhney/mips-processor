@@ -92,7 +92,8 @@ wire rwd;
 
 reg do_mx_bypass;
 reg do_wx_bypass;
-reg do_wm_bypass;
+reg do_mx_bypass_b;
+reg do_wx_bypass_b;
 
 // Data Wires (From EXECUTE Stage)
 wire [31:0] aluOut;
@@ -174,7 +175,11 @@ execute E0 (
 	.mx_bypass(aluOut_XM),
 	.do_mx_bypass(do_mx_bypass),
 	.wx_bypass(dataout),
-	.do_wx_bypass(do_wx_bypass)
+	.do_wx_bypass(do_wx_bypass),
+	.mx_bypass_b(aluOut_XM),
+	.do_mx_bypass_b(do_mx_bypass_b),
+	.wx_bypass_b(dataout),
+	.do_wx_bypass_b(do_wx_bypass_b)
 );
 
 memory DM (
@@ -276,6 +281,20 @@ always @(posedge clock) begin
 	end else begin
 		do_wx_bypass = 0;
 	end
+
+	if (IR_DX[20:16] == rd_XM) begin
+		do_mx_bypass_b = 1;
+	end else begin
+		do_mx_bypass_b = 0;
+	end
+
+	if (IR_DX[20:16] == rd_MW) begin
+		do_wx_bypass_b = 1;
+	end else begin
+		do_wx_bypass_b = 0;
+	end
+
+	
 
 	pc_DX <= pc_FD;
 	IR_DX <= i_data_out;

@@ -1,4 +1,4 @@
-module execute (pc, rA, rB, insn, aluOut, rBOut, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, pc_effective, do_branch, mx_bypass, do_mx_bypass, wx_bypass, do_wx_bypass);
+module execute (pc, rA, rB, insn, aluOut, rBOut, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, pc_effective, do_branch, mx_bypass, do_mx_bypass, wx_bypass, do_wx_bypass, mx_bypass_b, do_mx_bypass_b, wx_bypass_b, do_wx_bypass_b);
 
 /****************ALUOPS******************/
 parameter ADD_OP 	= 6'b000000;
@@ -48,6 +48,11 @@ input wire do_mx_bypass;
 input wire [31:0] wx_bypass;
 input wire do_wx_bypass;
 
+input wire [31:0] mx_bypass_b;
+input wire do_mx_bypass_b;
+input wire [31:0] wx_bypass_b;
+input wire do_wx_bypass_b;
+
 // Input Controls
 input wire br;
 input wire jp;
@@ -75,7 +80,7 @@ reg [31:0] jump_effective_address;
 reg [31:0] hi;
 reg [31:0] lo;
 
-reg [31:0] rA_REG;
+reg [31:0] rA_REG, rB_REG;
 
 // Compute effective PC for Jumps or Branches and set signals
 // that are read in FETCH Module for PC
@@ -93,26 +98,34 @@ begin : EXECUTE
 		rA_REG = rA;
 	end
 
+	if (do_mx_bypass_b == 1) begin
+		rB_REG = mx_bypass_b;
+	end else if (do_wx_bypass_b == 1) begin
+		rB_REG = wx_bypass_b;
+	end else begin
+		rB_REG = rB;
+	end
+
 	case (aluop)
 		ADD_OP: begin
 			case (aluinb)
-				1'b0: aluOut = rA_REG + rB;
+				1'b0: aluOut = rA_REG + rB_REG;
 				1'b1: aluOut = rA_REG + { { 16{ insn[15] } }, insn[15:0] };
 			endcase
 		end
 		SUB_OP: begin
 			case (aluinb)
-				1'b0: aluOut = rA_REG - rB;
+				1'b0: aluOut = rA_REG - rB_REG;
 				1'b1: aluOut = rA_REG - { { 16{ insn[15] } }, insn[15:0] };
 			endcase
 		end
 		MULT_OP: begin
-			lo = rA_REG * rB;
+			lo = rA_REG * rB_REG;
 			aluOut = 32'hx;
 		end
 		DIV_OP: begin
-			lo = rA_REG / rB;
-			hi = rA_REG % rB;
+			lo = rA_REG / rB_REG;
+			hi = rA_REG % rB_REG;
 			aluOut = 32'hx;
 		end
 		MFHI_OP: begin
@@ -124,7 +137,7 @@ begin : EXECUTE
 		SLT_OP: begin
 			case (aluinb)
 				1'b0: begin
-					if (rA_REG < rB) begin
+					if (rA_REG < rB_REG) begin
 						aluOut = 32'h1;
 					end else begin
 						aluOut = 32'h0;
@@ -140,43 +153,43 @@ begin : EXECUTE
 			endcase
 		end
 		SLL_OP: begin
-			aluOut = rB << insn[10:6];
+			aluOut = rB_REG << insn[10:6];
 		end
 		SLLV_OP: begin
-			aluOut = rB << rA_REG;
+			aluOut = rB_REG << rA_REG;
 		end
 		SRL_OP: begin
-			aluOut = rB >> insn[10:6];
+			aluOut = rB_REG >> insn[10:6];
 		end
 		SRLV_OP: begin
-			aluOut = rB >> rA_REG;
+			aluOut = rB_REG >> rA_REG;
 		end
 		SRA_OP: begin	
-			aluOut = rB >>> insn[10:6];
+			aluOut = rB_REG >>> insn[10:6];
 		end
 		SRAV_OP: begin	
-			aluOut = rB >>> rA_REG;
+			aluOut = rB_REG >>> rA_REG;
 		end
 		AND_OP: begin
 			case (aluinb)
-				1'b0: aluOut = rA_REG & rB;
+				1'b0: aluOut = rA_REG & rB_REG;
 				1'b1: aluOut = rA_REG & { { 16{ insn[15] } }, insn[15:0] };
 			endcase
 		end
 		OR_OP: begin
 			case (aluinb)
-				1'b0: aluOut = rA_REG | rB;
+				1'b0: aluOut = rA_REG | rB_REG;
 				1'b1: aluOut = rA_REG | { { 16{ insn[15] } }, insn[15:0] };
 			endcase
 		end
 		XOR_OP: begin
 			case (aluinb)
-				1'b0: aluOut = rA_REG ^ rB;
+				1'b0: aluOut = rA_REG ^ rB_REG;
 				1'b1: aluOut = rA_REG ^ { { 16{ insn[15] } }, insn[15:0] };
 			endcase
 		end
 		NOR_OP: begin
-				aluOut = ~(rA_REG | rB);
+				aluOut = ~(rA_REG | rB_REG);
 		end
 		J_OP: begin
 			jump_effective_address = {pc[31:28], insn[25:0], 2'b00};
@@ -216,7 +229,7 @@ begin : EXECUTE
 			aluOut = rA_REG + { { 16{ 1'b0 } }, insn[15:0] };
 		end
 		BEQ_OP: begin
-			if (rA_REG == rB) begin
+			if (rA_REG == rB_REG) begin
 				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
 				branch_output = 1;           	
 			end else begin
@@ -224,7 +237,7 @@ begin : EXECUTE
 			end
 		end
 		BNE_OP: begin
-			if (rA_REG != rB) begin
+			if (rA_REG != rB_REG) begin
 				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
 				branch_output = 1;
 			end else begin
