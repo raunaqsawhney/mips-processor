@@ -1,7 +1,9 @@
 module pipeline_tb;
 
-parameter base_addr = 32'h80020000;
+parameter base_addr 	= 32'h80020000;
 parameter NOP_OP	= 6'b100001;
+parameter LW		= 6'b100011; //LW
+parameter SW		= 6'b101011; //SW
 
 // File IO 
 integer file;
@@ -11,7 +13,7 @@ integer scan_file;
 
 reg[31:0] read_data;
 reg[31:0] data_read;
-reg stall;
+wire stall;
 integer i;
 
 reg clock;
@@ -107,14 +109,14 @@ wire rwe_wb;
 //Data Wires (From MEMORY Stage)
 wire [31:0] d_data_out;
 
-integer stall_count;
-
+// Bypass Wires
 wire [4:0] rd_XM, rd_MW;
 wire do_mx_bypass;
 wire do_wx_bypass;
 wire do_wm_bypass;
 wire do_mx_bypass_b;
 wire do_wx_bypass_b;
+wire do_load_use_stall;
 
 memory IM (
 	.clock(clock),
@@ -220,14 +222,10 @@ writeback W0 (
 
 initial begin
 	clock = 1;
-	stall = 0;
-
 	count = 0;
 	words_read = 0;
 
 	F0.pc = base_addr - 32'h4;
-
-	stall_count = 0;
 
 	// Read input file and fill IMEM
 	file = $fopen("SimpleAddTest.x", "r");
@@ -270,7 +268,8 @@ assign i_do_wm_bypass = 1'b0;
 // Invert the DMWE control signal for enabling data memory for writes
 assign dmwe_XM_inverted = ~dmwe_XM;
 
-// Determine destination registers for Bypassing
+// Determine destination registers for Bypassing and Stall
+assign rd_DX = (rdst_DX) ? IR_DX[15:11] : IR_DX[20:16];
 assign rd_XM = (rdst_XM) ? IR_XM[15:11] : IR_XM[20:16];
 assign rd_MW = (rdst_MW) ? IR_MW[15:11] : IR_MW[20:16];
 
@@ -282,6 +281,10 @@ assign do_wm_bypass = rwe_MW & dmwe_XM & (IR_XM[20:16] == rd_MW);
 // Perform Bypass on Input B
 assign do_mx_bypass_b = rwe_XM & dmwe_DX & (IR_DX[20:16] == rd_XM);
 assign do_wx_bypass_b = rwe_MW & dmwe_DX & (IR_DX[20:16] == rd_MW);
+
+// TODO: Add support to detect LB and SB instructions
+assign do_load_use_stall = (IR_DX[31:26] === LW) & ((i_data_out[25:21] === rd_DX) | ((i_data_out[20:16] === rd_DX) & (i_data_out[31:26] !== SW)));
+assign stall = do_load_use_stall;
 
 always @(posedge clock) begin
 	
@@ -324,14 +327,11 @@ always @(posedge clock) begin
 	rdst_MW <= rdst_XM;
 	rwd_MW <= rwd_XM;
 
-	
-
 	// Debug Prints
 	$display("\n\nF/D: PC = %x | IR = %x", pc_FD, i_data_out);
 	$display("D/X: PC = %x | IR = %x", pc_DX, IR_DX);
 	$display("X/M: PC = %x | IR = %x", pc_XM, IR_XM);
 	$display("M/W: PC = %x | IR = %x", pc_MW, IR_MW);
-
 
 end
 

@@ -3,6 +3,7 @@ quietly WaveActivateNextPane {} 0
 add wave -noupdate -radix hexadecimal /pipeline_tb/clock
 add wave -noupdate -radix hexadecimal /pipeline_tb/i_mem_enable
 add wave -noupdate -radix hexadecimal /pipeline_tb/pc_FD
+add wave -noupdate /pipeline_tb/stall
 add wave -noupdate -radix hexadecimal /pipeline_tb/i_data_out
 add wave -noupdate -radix hexadecimal /pipeline_tb/pc_DX
 add wave -noupdate -radix hexadecimal /pipeline_tb/IR_DX
@@ -51,6 +52,7 @@ add wave -noupdate /pipeline_tb/do_mx_bypass_b
 add wave -noupdate /pipeline_tb/do_wx_bypass_b
 add wave -noupdate /pipeline_tb/rd_XM
 add wave -noupdate /pipeline_tb/rd_MW
+add wave -noupdate /pipeline_tb/do_load_use_stall
 add wave -noupdate -radix hexadecimal /pipeline_tb/W0/o
 add wave -noupdate -radix hexadecimal /pipeline_tb/W0/dataout
 add wave -noupdate -radix hexadecimal /pipeline_tb/W0/insn_to_d
