@@ -110,7 +110,7 @@ wire rwe_wb;
 wire [31:0] d_data_out;
 
 // Bypass Wires
-wire [4:0] rd_XM, rd_MW;
+wire [4:0] rd_XM, rd_MW, rd_DX;
 wire do_mx_bypass;
 wire do_wx_bypass;
 wire do_wm_bypass;
@@ -228,7 +228,7 @@ initial begin
 	F0.pc = base_addr - 32'h4;
 
 	// Read input file and fill IMEM
-	file = $fopen("SimpleAddTest.x", "r");
+	file = $fopen("SimpleIf.x", "r");
 	while($feof(file) == 0) begin
 		scan_file = $fscanf(file, "%x", read_data);
 		
@@ -279,8 +279,8 @@ assign do_wx_bypass = rwe_MW & (IR_DX[25:21] == rd_MW);
 assign do_wm_bypass = rwe_MW & dmwe_XM & (IR_XM[20:16] == rd_MW);
 
 // Perform Bypass on Input B
-assign do_mx_bypass_b = rwe_XM & dmwe_DX & (IR_DX[20:16] == rd_XM);
-assign do_wx_bypass_b = rwe_MW & dmwe_DX & (IR_DX[20:16] == rd_MW);
+assign do_mx_bypass_b = rwe_XM & (aluinb_DX | dmwe_DX) & ~rdst_DX & (IR_DX[20:16] == rd_XM);
+assign do_wx_bypass_b = rwe_MW & (aluinb_DX | dmwe_DX) & ~rdst_DX & (IR_DX[20:16] == rd_MW);
 
 // TODO: Add support to detect LB and SB instructions
 assign do_load_use_stall = (IR_DX[31:26] === LW) & ((i_data_out[25:21] === rd_DX) | ((i_data_out[20:16] === rd_DX) & (i_data_out[31:26] !== SW)));
@@ -288,18 +288,18 @@ assign stall = do_load_use_stall;
 
 always @(posedge clock) begin
 	
-	pc_DX <= pc_FD;
-	IR_DX <= i_data_out;
-	rA_DX <= rA;
-	rB_DX <= rB;
-	br_DX <= br;
-	jp_DX <= jp;
-	aluinb_DX <= aluinb;
-	aluop_DX <= aluop;
-	dmwe_DX <= dmwe;
-	rwe_DX <= rwe;
-	rdst_DX <= rdst;
-	rwd_DX <= rwd;
+	pc_DX <= (stall) ? 32'h0 : pc_FD;
+	IR_DX <= (stall) ? 32'h0 : i_data_out;
+	rA_DX <= (stall) ? 5'h0 : rA;
+	rB_DX <= (stall) ? 5'h0 : rB;
+	br_DX <= (stall) ? 1'h0 : br;
+	jp_DX <= (stall) ? 1'h0 : jp;
+	aluinb_DX <= (stall) ? 1'h0 : aluinb;
+	aluop_DX <= (stall) ? NOP_OP : aluop;
+	dmwe_DX <= (stall) ? 1'h0 : dmwe;
+	rwe_DX <= (stall) ? 1'h0 : rwe;
+	rdst_DX <= (stall) ? 1'h0 : rdst;
+	rwd_DX <= (stall) ? 1'h0 : rwd;
 
 	pc_XM <= pc_DX;
 	IR_XM <= IR_DX;

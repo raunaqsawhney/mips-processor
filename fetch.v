@@ -27,15 +27,11 @@ parameter word_size = 2'b00;	// Default: 1 Word Access Size
 always @(stall, pc)
 begin
 	case(stall)
-		1'b0: begin
-			i_mem_enable <= 1;
-		end
-		1'b1: begin
-			i_mem_enable <= 0;
-		end
+		1'b0: i_mem_enable <= 1;
+		1'b1: i_mem_enable <= 0;
 	endcase
-	access_size	<= word_size;
-	rw 	<= 1;
+	access_size <= word_size;
+	rw <= 1;
 	address <= pc;
 end
 
@@ -51,12 +47,16 @@ begin
 				1'b1: pc <= pc_effective;
 				default: pc <= pc + 32'h4;
 			endcase
+			pc_out <= pc;
 		end
 		1'b1: begin
-			pc <= pc;
+			case(do_branch)
+				1'b0: pc <= pc;
+				1'b1: pc <= pc_effective;
+			endcase
+			pc_out <= 32'h0;
 		end
 	endcase
-	pc_out <= pc;
 end
 
 endmodule
