@@ -82,7 +82,7 @@ reg rwe_MW;
 reg rdst_MW;
 reg rwd_MW;
 
-// Control Wires (From the DECODE Stage)
+// Wires from the DECODE Stage
 wire [31:0] rA;
 wire [31:0] rB;
 wire br;
@@ -94,20 +94,20 @@ wire rwe;
 wire rdst;
 wire rwd;
 
-// Data Wires (From EXECUTE Stage)
+// Wires from EXECUTE Stage
 wire [31:0] aluOut;
 wire [31:0] rBOut;
 wire dmwe_XM_inverted;
 wire [31:0] pc_effective;
 wire do_branch;
 
-//Data Wires (From WRITEBACK Stage)
+//Data Wires (From MEMORY Stage)
+wire [31:0] d_data_out;
+
+//Wires from WRITEBACK Stage
 wire [4:0] insn_to_d;
 wire [31:0] dataout;
 wire rwe_wb;
-
-//Data Wires (From MEMORY Stage)
-wire [31:0] d_data_out;
 
 // Bypass Wires
 wire [4:0] rd_XM, rd_MW, rd_DX;
@@ -261,6 +261,7 @@ initial begin
 	
 end
 
+
 // IMEM Does not need wm bypass, set values accordingly
 assign i_wm_bypass = 32'h0;
 assign i_do_wm_bypass = 1'b0;
@@ -273,59 +274,62 @@ assign rd_DX = (rdst_DX) ? IR_DX[15:11] : IR_DX[20:16];
 assign rd_XM = (rdst_XM) ? IR_XM[15:11] : IR_XM[20:16];
 assign rd_MW = (rdst_MW) ? IR_MW[15:11] : IR_MW[20:16];
 
-// Perform Bypass on Input A
+// Perform MX Bypass
 assign do_mx_bypass = rwe_XM & (IR_DX[25:21] == rd_XM);
+assign do_mx_bypass_b = rwe_XM & rdst_DX & (IR_DX[20:16] == rd_XM);
+
+// Perform WX Bypass
 assign do_wx_bypass = rwe_MW & (IR_DX[25:21] == rd_MW);
+assign do_wx_bypass_b = rwe_MW & rdst_DX & (IR_DX[20:16] == rd_MW);
+
+// Perform WM Bypass
 assign do_wm_bypass = rwe_MW & dmwe_XM & (IR_XM[20:16] == rd_MW);
 
-// Perform Bypass on Input B
-assign do_mx_bypass_b = rwe_XM & (aluinb_DX | dmwe_DX) & ~rdst_DX & (IR_DX[20:16] == rd_XM);
-assign do_wx_bypass_b = rwe_MW & (aluinb_DX | dmwe_DX) & ~rdst_DX & (IR_DX[20:16] == rd_MW);
-
+// Perform Load-Use Stall
 // TODO: Add support to detect LB and SB instructions
 assign do_load_use_stall = (IR_DX[31:26] === LW) & ((i_data_out[25:21] === rd_DX) | ((i_data_out[20:16] === rd_DX) & (i_data_out[31:26] !== SW)));
 assign stall = do_load_use_stall;
 
 always @(posedge clock) begin
 	
-	pc_DX <= (stall) ? 32'h0 : pc_FD;
-	IR_DX <= (stall) ? 32'h0 : i_data_out;
-	rA_DX <= (stall) ? 5'h0 : rA;
-	rB_DX <= (stall) ? 5'h0 : rB;
-	br_DX <= (stall) ? 1'h0 : br;
-	jp_DX <= (stall) ? 1'h0 : jp;
-	aluinb_DX <= (stall) ? 1'h0 : aluinb;
-	aluop_DX <= (stall) ? NOP_OP : aluop;
-	dmwe_DX <= (stall) ? 1'h0 : dmwe;
-	rwe_DX <= (stall) ? 1'h0 : rwe;
-	rdst_DX <= (stall) ? 1'h0 : rdst;
-	rwd_DX <= (stall) ? 1'h0 : rwd;
+	pc_DX	 	<= stall ? 32'h0 : pc_FD;
+	IR_DX 		<= stall ? 32'h0 : i_data_out;
+	rA_DX 		<= stall ? 5'h0 : rA;
+	rB_DX 		<= stall ? 5'h0 : rB;
+	br_DX 		<= stall ? 1'h0 : br;
+	jp_DX 		<= stall ? 1'h0 : jp;
+	aluinb_DX 	<= stall ? 1'h0 : aluinb;
+	aluop_DX  	<= stall ? NOP_OP : aluop;
+	dmwe_DX   	<= stall ? 1'h0 : dmwe;
+	rwe_DX    	<= stall ? 1'h0 : rwe;
+	rdst_DX   	<= stall ? 1'h0 : rdst;
+	rwd_DX 	  	<= stall ? 1'h0 : rwd;
 
-	pc_XM <= pc_DX;
-	IR_XM <= IR_DX;
-	aluOut_XM <= aluOut;
-	rBOut_XM <= rB_DX;
-	br_XM <= br_DX;
-	jp_XM <= jp_DX;
-	aluinb_XM <= aluinb_DX;
-	aluop_XM <= aluop_DX;
-	dmwe_XM <= dmwe_DX;
-	rwe_XM <= rwe_DX;
-	rdst_XM <= rdst_DX;
-	rwd_XM <= rwd_DX;
+	pc_XM		<= pc_DX;
+	IR_XM		<= IR_DX;
+	br_XM 		<= br_DX;
+	jp_XM 		<= jp_DX;
+	aluinb_XM 	<= aluinb_DX;
+	aluop_XM 	<= aluop_DX;
+	dmwe_XM 	<= dmwe_DX;
+	rwe_XM 		<= rwe_DX;
+	rdst_XM 	<= rdst_DX;
+	rwd_XM 		<= rwd_DX;
+	aluOut_XM 	<= aluOut;
+	rBOut_XM 	<= rBOut;
 
-	pc_MW <= pc_XM;
-	IR_MW <= IR_XM;
-	o_MW <= aluOut_XM;
-	d_MW <= d_data_out;
-	br_MW <= br_XM;
-	jp_MW <= jp_XM;
-	aluinb_MW <= aluinb_XM;
-	aluop_MW <= aluop_XM;
-	dmwe_MW <= dmwe_XM;
-	rwe_MW <= rwe_XM;
-	rdst_MW <= rdst_XM;
-	rwd_MW <= rwd_XM;
+	pc_MW 		<= pc_XM;
+	IR_MW 		<= IR_XM;
+	o_MW 		<= aluOut_XM;
+	d_MW 		<= d_data_out;
+	br_MW 		<= br_XM;
+	jp_MW 		<= jp_XM;
+	aluinb_MW 	<= aluinb_XM;
+	aluop_MW 	<= aluop_XM;
+	dmwe_MW 	<= dmwe_XM;
+	rwe_MW 		<= rwe_XM;
+	rdst_MW 	<= rdst_XM;
+	rwd_MW 		<= rwd_XM;
 
 	// Debug Prints
 	$display("\n\nF/D: PC = %x | IR = %x", pc_FD, i_data_out);

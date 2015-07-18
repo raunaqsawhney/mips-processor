@@ -67,7 +67,7 @@ input wire rwd;
 
 // Output Data
 output reg [31:0] aluOut;
-output reg [31:0] rBOut;
+output wire [31:0] rBOut;
 
 // Output wires into FETCH Module
 output [31:0] pc_effective;
@@ -89,24 +89,30 @@ reg [31:0] rA_REG, rB_REG;
 assign pc_effective = (jp) ? jump_effective_address : branch_effective_address;
 assign do_branch = (branch_output & br) | jp;
 
+assign rBOut = rB_REG;
+
 always @(insn, aluop, rA, rB, do_mx_bypass, do_wx_bypass, mx_bypass, wx_bypass, do_mx_bypass_b, do_wx_bypass_b, mx_bypass_b, wx_bypass_b)
 begin : EXECUTE
 
 	// Bypass paths for input A
 	if (do_mx_bypass == 1) begin
 		rA_REG = mx_bypass;
-	end else if (do_wx_bypass == 1) begin
+	end
+	if (do_wx_bypass == 1) begin
 		rA_REG = wx_bypass;
-	end else begin
+	end 
+	if (do_mx_bypass !== 1 & do_wx_bypass !== 1)begin
 		rA_REG = rA;
 	end
 
 	// Bypass paths for input B
 	if (do_mx_bypass_b == 1) begin
 		rB_REG = mx_bypass_b;
-	end else if (do_wx_bypass_b == 1) begin
+	end
+	if (do_wx_bypass_b == 1) begin
 		rB_REG = wx_bypass_b;
-	end else begin
+	end
+	if (do_mx_bypass_b !== 1 & do_wx_bypass_b !== 1) begin
 		rB_REG = rB;
 	end
 

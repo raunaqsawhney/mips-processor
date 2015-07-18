@@ -114,7 +114,7 @@ output [31:0] rB;			// Output rB of DECODE
 output reg br;				//branch
 output reg jp;				//Jump
 output reg aluinb;			//ALU B Input bridged straight across E-Stage to DMEM
-output reg [5:0] aluop;		//ALU OP Code (a subset of DECODE Opcodes)
+output reg [5:0] aluop;			//ALU OP Code (a subset of DECODE Opcodes)
 output reg dmwe;			//DM Write Enable
 output reg rwe;				//REGFILE Write Enable
 output reg rdst;			//d input to REGFILE (either rt or rd)
@@ -145,12 +145,12 @@ begin : DECODE
 		// Signals, so that there is no infinite branch or jump conditions
 		br = 0;
 		jp = 0;
-		aluinb = 1'hx;
+		//aluinb = 1'hx;
 		aluop = NOP_OP;
-		dmwe = 0;
-		rwe = 0;
-		rdst = 1'hx;
-		rwd = 1'hx;
+		//dmwe = 0;
+		//rwe = 0;
+		//rdst = 1'hx;
+		//rwd = 1'hx;
 
 		s1 = 5'h0;
 		s2 = 5'h0;
@@ -217,8 +217,8 @@ begin : DECODE
 				aluop = MULT_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 1'hx;
-				rwd = 1'hx;
+				//rdst = 1'hx;
+				//rwd = 1'hx;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -230,8 +230,8 @@ begin : DECODE
 				aluop = MULT_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 1'hx;
-				rwd = 1'hx;
+				//rdst = 1'hx;
+				//rwd = 1'hx;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -243,8 +243,8 @@ begin : DECODE
 				aluop = MULT_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 1'hx;
-				rwd = 1'hx;
+				//rdst = 1'hx;
+				//rwd = 1'hx;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -256,8 +256,8 @@ begin : DECODE
 				aluop = DIV_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 1'hx;		
-				rwd = 1'hx;
+				//rdst = 1'hx;		
+				//rwd = 1'hx;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -269,8 +269,8 @@ begin : DECODE
 				aluop = DIV_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 1'hx;		
-				rwd = 1'hx;
+				//rdst = 1'hx;		
+				//rwd = 1'hx;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -278,7 +278,7 @@ begin : DECODE
 			MFHI: begin
 				br = 0;
 				jp = 0;
-				aluinb = 1'hx;
+				//aluinb = 1'hx;
 				aluop = MFHI_OP;
 				dmwe = 0;
 				rwe = 0;
@@ -291,7 +291,7 @@ begin : DECODE
 			MFLO: begin
 				br = 0;
 				jp = 0;
-				aluinb = 1'hx;
+				//aluinb = 1'hx;
 				aluop = MFLO_OP;
 				dmwe = 0;
 				rwe = 0;
@@ -447,11 +447,11 @@ begin : DECODE
 			JALR: begin
 				br = 0;
 				jp = 1;
-				aluinb = 1'hx;
+				//aluinb = 1'hx;
 				aluop = JALR_OP;
 				dmwe = 0;
 				rwe = 1;
-				rdst = 1'hx;
+				//rdst = 1'hx;
 				rwd = 0;	//ALU outputs PC + 8 to be writteb back to rA (r31)
 
 				s1 = insn[25:21];
@@ -460,12 +460,12 @@ begin : DECODE
 			JR: begin
 				br = 0;
 				jp = 1;
-				aluinb = 1'hx;
+				//aluinb = 1'hx;
 				aluop = JR_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 1'hx;
-				rwd = 1'hx;
+				//rdst = 1'hx;
+				//rwd = 1'hx;
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
@@ -607,7 +607,7 @@ begin : DECODE
 			LUI: begin
 				br = 0;
 				jp = 0;
-				aluinb = 1'hx;
+				//aluinb = 1'hx;
 				aluop = LUI_OP;
 				dmwe = 0;
 				rwe = 1;
@@ -624,8 +624,8 @@ begin : DECODE
 				aluop = SB_OP;
 				dmwe = 1;
 				rwe = 0;
-				rdst = 1'hx;
-				rwd = 1'hx;
+				//rdst = 1'hx;
+				//rwd = 1'hx;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -650,8 +650,8 @@ begin : DECODE
 				aluop = BEQ_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 1'hx;
-				rwd = 1'hx;
+				//rdst = 1'hx;
+				//rwd = 1'hx;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -663,8 +663,8 @@ begin : DECODE
 				aluop = BNE_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 1'hx;
-				rwd = 1'hx;
+				//rdst = 1'hx;
+				//rwd = 1'hx;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -672,12 +672,12 @@ begin : DECODE
 			BGTZ: begin
 				br = 1;
 				jp = 0;
-				aluinb = 1'hx;
+				//aluinb = 1'hx;
 				aluop = BGTZ_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 1'hx;
-				rwd = 1'hx;
+				//rdst = 1'hx;
+				//rwd = 1'hx;
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
@@ -685,12 +685,12 @@ begin : DECODE
 			BLEZ: begin
 				br = 1;
 				jp = 0;
-				aluinb = 1'hx;
+				//aluinb = 1'hx;
 				aluop = BLEZ_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 1'hx;
-				rwd = 1'hx;
+				//rdst = 1'hx;
+				//rwd = 1'hx;
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
@@ -702,12 +702,12 @@ begin : DECODE
 			BLTZ: begin
 				br = 1;
 				jp = 0;
-				aluinb = 1'hx;
+				//aluinb = 1'hx;
 				aluop = BLTZ_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 1'hx;
-				rwd = 1'hx;
+				//rdst = 1'hx;
+				//rwd = 1'hx;
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
@@ -715,12 +715,12 @@ begin : DECODE
 			BGEZ: begin
 				br = 1;
 				jp = 0;
-				aluinb = 1'hx;
+				//aluinb = 1'hx;
 				aluop = BGEZ_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 1'hx;
-				rwd = 1'hx;
+				//rdst = 1'hx;
+				//rwd = 1'hx;
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
@@ -732,21 +732,21 @@ begin : DECODE
 			J: begin
 				br = 0;
 				jp = 1;
-				aluinb = 1'hx;
+				//aluinb = 1'hx;
 				aluop = J_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 1'hx;
-				rwd = 1'hx;
+				//rdst = 1'hx;
+				//rwd = 1'hx;
 			end
 			JAL: begin
 				br = 0;
 				jp = 1;
-				aluinb = 1'hx;
+				//aluinb = 1'hx;
 				aluop = JAL_OP;
 				dmwe = 0;
 				rwe = 1;
-				rdst = 1'hx;
+				//rdst = 1'hx;
 				rwd = 0;	//ALU outputs PC + 8 to be writteb back to rA (r31)
 			end
 		endcase

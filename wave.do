@@ -2,9 +2,19 @@ onerror {resume}
 quietly WaveActivateNextPane {} 0
 add wave -noupdate -radix hexadecimal /pipeline_tb/clock
 add wave -noupdate -radix hexadecimal /pipeline_tb/i_mem_enable
-add wave -noupdate /pipeline_tb/stall
+add wave -noupdate -radix hexadecimal /pipeline_tb/stall
 add wave -noupdate -radix hexadecimal /pipeline_tb/pc_FD
 add wave -noupdate -radix hexadecimal /pipeline_tb/i_data_out
+add wave -noupdate -radix hexadecimal /pipeline_tb/rA
+add wave -noupdate -radix hexadecimal /pipeline_tb/rB
+add wave -noupdate -radix hexadecimal /pipeline_tb/br
+add wave -noupdate -radix hexadecimal /pipeline_tb/jp
+add wave -noupdate -radix hexadecimal /pipeline_tb/aluinb
+add wave -noupdate -radix hexadecimal /pipeline_tb/aluop
+add wave -noupdate -radix hexadecimal /pipeline_tb/dmwe
+add wave -noupdate -radix hexadecimal /pipeline_tb/rwe
+add wave -noupdate -radix hexadecimal /pipeline_tb/rdst
+add wave -noupdate -radix hexadecimal /pipeline_tb/rwd
 add wave -noupdate -radix hexadecimal /pipeline_tb/pc_DX
 add wave -noupdate -radix hexadecimal /pipeline_tb/IR_DX
 add wave -noupdate -radix hexadecimal /pipeline_tb/rA_DX
@@ -17,6 +27,8 @@ add wave -noupdate -radix hexadecimal /pipeline_tb/dmwe_DX
 add wave -noupdate -radix hexadecimal /pipeline_tb/rwe_DX
 add wave -noupdate -radix hexadecimal /pipeline_tb/rdst_DX
 add wave -noupdate -radix hexadecimal /pipeline_tb/rwd_DX
+add wave -noupdate -radix hexadecimal /pipeline_tb/aluOut
+add wave -noupdate -radix hexadecimal /pipeline_tb/rBOut
 add wave -noupdate -radix hexadecimal /pipeline_tb/pc_XM
 add wave -noupdate -radix hexadecimal /pipeline_tb/IR_XM
 add wave -noupdate -radix hexadecimal /pipeline_tb/aluOut_XM
@@ -44,15 +56,15 @@ add wave -noupdate -radix hexadecimal /pipeline_tb/dmwe_MW
 add wave -noupdate -radix hexadecimal /pipeline_tb/rwe_MW
 add wave -noupdate -radix hexadecimal /pipeline_tb/rdst_MW
 add wave -noupdate -radix hexadecimal /pipeline_tb/rwd_MW
-add wave -noupdate /pipeline_tb/rwe_wb
-add wave -noupdate /pipeline_tb/do_mx_bypass
-add wave -noupdate /pipeline_tb/do_wx_bypass
-add wave -noupdate /pipeline_tb/do_wm_bypass
-add wave -noupdate /pipeline_tb/do_mx_bypass_b
-add wave -noupdate /pipeline_tb/do_wx_bypass_b
-add wave -noupdate /pipeline_tb/rd_XM
-add wave -noupdate /pipeline_tb/rd_MW
-add wave -noupdate /pipeline_tb/do_load_use_stall
+add wave -noupdate -radix hexadecimal /pipeline_tb/rwe_wb
+add wave -noupdate -radix hexadecimal /pipeline_tb/do_mx_bypass
+add wave -noupdate -radix hexadecimal /pipeline_tb/do_wx_bypass
+add wave -noupdate -radix hexadecimal /pipeline_tb/do_wm_bypass
+add wave -noupdate -radix hexadecimal /pipeline_tb/do_mx_bypass_b
+add wave -noupdate -radix hexadecimal /pipeline_tb/do_wx_bypass_b
+add wave -noupdate -radix hexadecimal /pipeline_tb/rd_XM
+add wave -noupdate -radix hexadecimal /pipeline_tb/rd_MW
+add wave -noupdate -radix hexadecimal /pipeline_tb/do_load_use_stall
 add wave -noupdate -radix hexadecimal /pipeline_tb/W0/o
 add wave -noupdate -radix hexadecimal /pipeline_tb/W0/dataout
 add wave -noupdate -radix hexadecimal /pipeline_tb/W0/insn_to_d
@@ -75,4 +87,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {66 ps} {138 ps}
+WaveRestoreZoom {112 ps} {184 ps}
