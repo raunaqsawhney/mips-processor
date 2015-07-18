@@ -113,6 +113,8 @@ wire [4:0] rd_XM, rd_MW;
 wire do_mx_bypass;
 wire do_wx_bypass;
 wire do_wm_bypass;
+wire do_mx_bypass_b;
+wire do_wx_bypass_b;
 
 memory IM (
 	.clock(clock),
@@ -178,7 +180,11 @@ execute E0 (
 	.mx_bypass(aluOut_XM),
 	.do_mx_bypass(do_mx_bypass),
 	.wx_bypass(dataout),
-	.do_wx_bypass(do_wx_bypass)
+	.do_wx_bypass(do_wx_bypass),
+	.mx_bypass_b(aluOut_XM),
+	.do_mx_bypass_b(do_mx_bypass_b),
+	.wx_bypass_b(dataout),
+	.do_wx_bypass_b(do_wx_bypass_b)
 );
 
 memory DM (
@@ -261,14 +267,21 @@ end
 assign i_wm_bypass = 32'h0;
 assign i_do_wm_bypass = 1'b0;
 
+// Invert the DMWE control signal for enabling data memory for writes
 assign dmwe_XM_inverted = ~dmwe_XM;
 
+// Determine destination registers for Bypassing
 assign rd_XM = (rdst_XM) ? IR_XM[15:11] : IR_XM[20:16];
 assign rd_MW = (rdst_MW) ? IR_MW[15:11] : IR_MW[20:16];
 
+// Perform Bypass on Input A
 assign do_mx_bypass = rwe_XM & (IR_DX[25:21] == rd_XM);
 assign do_wx_bypass = rwe_MW & (IR_DX[25:21] == rd_MW);
 assign do_wm_bypass = rwe_MW & dmwe_XM & (IR_XM[20:16] == rd_MW);
+
+// Perform Bypass on Input B
+assign do_mx_bypass_b = rwe_XM & dmwe_DX & (IR_DX[20:16] == rd_XM);
+assign do_wx_bypass_b = rwe_MW & dmwe_DX & (IR_DX[20:16] == rd_MW);
 
 always @(posedge clock) begin
 	

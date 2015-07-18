@@ -47,9 +47,10 @@ add wave -noupdate /pipeline_tb/rwe_wb
 add wave -noupdate /pipeline_tb/do_mx_bypass
 add wave -noupdate /pipeline_tb/do_wx_bypass
 add wave -noupdate /pipeline_tb/do_wm_bypass
+add wave -noupdate /pipeline_tb/do_mx_bypass_b
+add wave -noupdate /pipeline_tb/do_wx_bypass_b
 add wave -noupdate /pipeline_tb/rd_XM
 add wave -noupdate /pipeline_tb/rd_MW
-add wave -noupdate /pipeline_tb/rd_MW_wm_bypass
 add wave -noupdate -radix hexadecimal /pipeline_tb/W0/o
 add wave -noupdate -radix hexadecimal /pipeline_tb/W0/dataout
 add wave -noupdate -radix hexadecimal /pipeline_tb/W0/insn_to_d
