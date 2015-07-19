@@ -3,18 +3,10 @@ quietly WaveActivateNextPane {} 0
 add wave -noupdate -radix hexadecimal /pipeline_tb/clock
 add wave -noupdate -radix hexadecimal /pipeline_tb/i_mem_enable
 add wave -noupdate -radix hexadecimal /pipeline_tb/stall
-add wave -noupdate -radix hexadecimal /pipeline_tb/pc_FD
+add wave -noupdate -radix hexadecimal /pipeline_tb/pc_out
 add wave -noupdate -radix hexadecimal /pipeline_tb/i_data_out
-add wave -noupdate -radix hexadecimal /pipeline_tb/rA
-add wave -noupdate -radix hexadecimal /pipeline_tb/rB
-add wave -noupdate -radix hexadecimal /pipeline_tb/br
-add wave -noupdate -radix hexadecimal /pipeline_tb/jp
-add wave -noupdate -radix hexadecimal /pipeline_tb/aluinb
-add wave -noupdate -radix hexadecimal /pipeline_tb/aluop
-add wave -noupdate -radix hexadecimal /pipeline_tb/dmwe
-add wave -noupdate -radix hexadecimal /pipeline_tb/rwe
-add wave -noupdate -radix hexadecimal /pipeline_tb/rdst
-add wave -noupdate -radix hexadecimal /pipeline_tb/rwd
+add wave -noupdate -radix hexadecimal /pipeline_tb/pc_FD
+add wave -noupdate -radix hexadecimal /pipeline_tb/IR_FD
 add wave -noupdate -radix hexadecimal /pipeline_tb/pc_DX
 add wave -noupdate -radix hexadecimal /pipeline_tb/IR_DX
 add wave -noupdate -radix hexadecimal /pipeline_tb/rA_DX
@@ -27,8 +19,8 @@ add wave -noupdate -radix hexadecimal /pipeline_tb/dmwe_DX
 add wave -noupdate -radix hexadecimal /pipeline_tb/rwe_DX
 add wave -noupdate -radix hexadecimal /pipeline_tb/rdst_DX
 add wave -noupdate -radix hexadecimal /pipeline_tb/rwd_DX
-add wave -noupdate -radix hexadecimal /pipeline_tb/aluOut
-add wave -noupdate -radix hexadecimal /pipeline_tb/rBOut
+add wave -noupdate -radix hexadecimal /pipeline_tb/pc_effective
+add wave -noupdate -radix hexadecimal /pipeline_tb/do_branch
 add wave -noupdate -radix hexadecimal /pipeline_tb/pc_XM
 add wave -noupdate -radix hexadecimal /pipeline_tb/IR_XM
 add wave -noupdate -radix hexadecimal /pipeline_tb/aluOut_XM
@@ -71,7 +63,7 @@ add wave -noupdate -radix hexadecimal /pipeline_tb/W0/insn_to_d
 add wave -noupdate -radix hexadecimal /pipeline_tb/D0/R0/d
 add wave -noupdate -radix hexadecimal /pipeline_tb/D0/R0/rd
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {110 ps} 0}
+WaveRestoreCursors {{Cursor 1} {200 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 196
 configure wave -valuecolwidth 100
@@ -87,4 +79,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {112 ps} {184 ps}
+WaveRestoreZoom {161 ps} {234 ps}

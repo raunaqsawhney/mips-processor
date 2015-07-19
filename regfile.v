@@ -12,13 +12,16 @@ output [31:0] rt;
 
 reg [31:0] REGFILE [31:0];
 
-//Combinationally write to rs and rt
+//Combinationally output rs and rt from Register File
 assign rs = (s1 != 0) ? REGFILE[s1] : 0;
 assign rt = (s2 != 0) ? REGFILE[s2] : 0;
 
+// Write on the negative clock edge to the Register File
 always @(negedge clock)
+begin
 	if (rwe == 1) begin
 		REGFILE[d] <= rd;
 	end
+end
 
 endmodule

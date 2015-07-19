@@ -9,7 +9,7 @@ input wire stall;
 input wire [31:0] pc_effective;
 input wire do_branch;
 
-// Outputs of FETCH Stage into DECODE
+// Outputs of FETCH Stage going into DECODE
 output reg [31:0] pc_out;
 output reg rw;
 output reg [31:0] address;
@@ -38,6 +38,7 @@ end
 // Output the FETCHED PC on a clock edge
 // If a branch was taken, then set PC to 
 // Effective PC computed in EXECUTE Stage
+
 always @(posedge clock)
 begin
 	case(stall)
