@@ -35,6 +35,7 @@ reg [1:0] d_access_size;
 wire d_rw;
 reg d_mem_enable;
 wire d_busy;
+wire do_branch_dm;
 
 //FD Registers
 wire [31:0] pc_FD;
@@ -118,9 +119,6 @@ wire do_mx_bypass_b;
 wire do_wx_bypass_b;
 wire do_load_use_stall;
 
-wire[31:0] pc_FD_W;
-wire[31:0] IR_FD_W;
-
 memory IM (
 	.clock(clock),
 	.address(i_address),
@@ -131,7 +129,8 @@ memory IM (
 	.busy(i_busy),
 	.data_out(i_data_out),
 	.wm_bypass(i_wm_bypass),
-	.do_wm_bypass(i_do_wm_bypass)
+	.do_wm_bypass(i_do_wm_bypass),
+	.do_branch(do_branch)
 );
 
 fetch #(.base_addr(base_addr)) F0 (
@@ -202,7 +201,8 @@ memory DM (
 	.busy(d_busy),
 	.data_out(d_data_out),
 	.wm_bypass(dataout),
-	.do_wm_bypass(do_wm_bypass)
+	.do_wm_bypass(do_wm_bypass),
+	.do_branch(do_branch_dm)
 );
 
 writeback W0 (
@@ -231,7 +231,7 @@ initial begin
 	F0.pc = base_addr - 32'h4;
 
 	// Read input file and fill IMEM
-	file = $fopen("Swap.x", "r");
+	file = $fopen("SimpleAdd.x", "r");
 	while($feof(file) == 0) begin
 		scan_file = $fscanf(file, "%x", read_data);
 		
@@ -268,6 +268,7 @@ end
 // IMEM Does not need wm bypass, set values accordingly
 assign i_wm_bypass = 32'h0;
 assign i_do_wm_bypass = 1'b0;
+assign do_branch_dm = 1'b0;
 
 // Invert the DMWE control signal for enabling data memory for writes
 assign dmwe_XM_inverted = ~dmwe_XM;

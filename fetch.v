@@ -9,7 +9,7 @@ input wire stall;
 input wire [31:0] pc_effective;
 input wire do_branch;
 
-// Outputs of FETCH Stage going into DECODE
+// Outputs of FETCH Stage into DECODE
 output reg [31:0] pc_out;
 output reg rw;
 output reg [31:0] address;
@@ -55,7 +55,7 @@ begin
 				1'b0: pc <= pc;
 				1'b1: pc <= pc_effective;
 			endcase
-			pc_out <= 32'h0;
+			pc_out <= pc - 32'h4;
 		end
 	endcase
 end
