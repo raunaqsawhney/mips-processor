@@ -1,4 +1,4 @@
-module decode(clock, pc, insn, rA, rB, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, rd, d, rwe_wb);
+module decode(clock, pc, insn, rA, rB, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, dm_byte, rd, d, rwe_wb);
 
 /****************OPCODES****************/
 // R-Type FUNC Codes
@@ -100,6 +100,7 @@ parameter BGEZ_OP  	= 6'b011110;
 parameter J_OP 		= 6'b011111;
 parameter JAL_OP    	= 6'b100000;
 parameter NOP_OP	= 6'b100001;
+parameter MUL_PSEUDO_OP	= 6'b100010;
 /**************************************/
 
 // Input Ports
@@ -118,11 +119,12 @@ output [31:0] rB;			// Output rB of DECODE
 output reg br;				//branch
 output reg jp;				//Jump
 output reg aluinb;			//ALU B Input bridged straight across E-Stage to DMEM
-output reg [5:0] aluop;		//ALU OP Code (a subset of DECODE Opcodes)
+output reg [5:0] aluop;			//ALU OP Code (a subset of DECODE Opcodes)
 output reg dmwe;			//DM Write Enable
 output reg rwe;				//REGFILE Write Enable
 output reg rdst;			//d input to REGFILE (either rt or rd)
 output reg rwd;				//Write data from ALU or DMEM
+output reg dm_byte;			//Set on a data byte instruction
 
 // Registers for holding s1 s2 inputs to REGFILE
 reg [4:0] s1;
@@ -153,6 +155,7 @@ begin : DECODE
 		aluop = NOP_OP;
 		rwe = 0;
 		dmwe = 0;
+		dm_byte = 0;
 
 		s1 = 5'h0;
 		s2 = 5'h0;
@@ -169,6 +172,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];
@@ -182,6 +186,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -195,6 +200,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -208,6 +214,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -216,11 +223,12 @@ begin : DECODE
 				br = 0;
 				jp = 0;
 				aluinb = 0;
-				aluop = MULT_OP;
+				aluop = MUL_PSEUDO_OP;
 				dmwe = 0;
-				rwe = 0;
-				//rdst = 1'hx;
-				//rwd = 1'hx;
+				rwe = 1;
+				rdst = 1;
+				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -232,8 +240,7 @@ begin : DECODE
 				aluop = MULT_OP;
 				dmwe = 0;
 				rwe = 0;
-				//rdst = 1'hx;
-				//rwd = 1'hx;
+				dm_byte = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -245,8 +252,7 @@ begin : DECODE
 				aluop = MULT_OP;
 				dmwe = 0;
 				rwe = 0;
-				//rdst = 1'hx;
-				//rwd = 1'hx;
+				dm_byte = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -258,8 +264,7 @@ begin : DECODE
 				aluop = DIV_OP;
 				dmwe = 0;
 				rwe = 0;
-				//rdst = 1'hx;		
-				//rwd = 1'hx;
+				dm_byte = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -271,8 +276,7 @@ begin : DECODE
 				aluop = DIV_OP;
 				dmwe = 0;
 				rwe = 0;
-				//rdst = 1'hx;		
-				//rwd = 1'hx;
+				dm_byte = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -286,6 +290,7 @@ begin : DECODE
 				rwe = 0;
 				rdst = 1;		
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = 5'h0;	//rs is not needed
 				s2 = 5'h0;	//rt is not needed
@@ -299,6 +304,7 @@ begin : DECODE
 				rwe = 0;
 				rdst = 1;		
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = 5'h0;	//rs is not needed
 				s2 = 5'h0;	//rt is not needed
@@ -312,6 +318,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -325,6 +332,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -338,6 +346,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = 5'h0;		
 				s2 = insn[20:16];	
@@ -351,6 +360,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -364,6 +374,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = 5'h0;			
 				s2 = insn[20:16];	
@@ -377,6 +388,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -390,6 +402,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = 5'h0;			
 				s2 = insn[20:16];	
@@ -403,6 +416,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -416,6 +430,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -429,6 +444,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -442,7 +458,8 @@ begin : DECODE
 				rwe = 1;
 				rdst = 1;
 				rwd = 0;
-
+				dm_byte = 0;
+				
 				s1 = insn[25:21];
 				s2 = insn[20:16];
 			end
@@ -453,6 +470,7 @@ begin : DECODE
 				aluop = JALR_OP;
 				dmwe = 0;
 				rwe = 1;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
@@ -464,6 +482,7 @@ begin : DECODE
 				aluop = JR_OP;	
 				dmwe = 0;
 				rwe = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
@@ -481,6 +500,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 0;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -494,6 +514,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 0;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -507,6 +528,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 0;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -520,6 +542,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 0;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -533,6 +556,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 0;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -546,6 +570,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 0;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -559,6 +584,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 0;
 				rwd = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -572,6 +598,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 0;
 				rwd = 1;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -583,6 +610,7 @@ begin : DECODE
 				aluop = SW_OP;
 				dmwe = 1;
 				rwe = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -596,6 +624,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 0;
 				rwd = 1;
+				dm_byte = 1;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -608,7 +637,8 @@ begin : DECODE
 				dmwe = 0;
 				rwe = 1;
 				rdst = 0;
-				rwd = 1;
+				rwd = 1;	
+				dm_byte = 0;
 
 				s1 = 5'h0;
 				s2 = insn[20:16];
@@ -620,6 +650,7 @@ begin : DECODE
 				aluop = SB_OP;
 				dmwe = 1;
 				rwe = 0;
+				dm_byte = 1;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -633,6 +664,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 0;
 				rwd = 1;
+				dm_byte = 1;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -644,6 +676,7 @@ begin : DECODE
 				aluop = BEQ_OP;
 				dmwe = 0;
 				rwe = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -655,6 +688,7 @@ begin : DECODE
 				aluop = BNE_OP;
 				dmwe = 0;
 				rwe = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -666,6 +700,7 @@ begin : DECODE
 				aluop = BGTZ_OP;
 				dmwe = 0;
 				rwe = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
@@ -677,6 +712,7 @@ begin : DECODE
 				aluop = BLEZ_OP;
 				dmwe = 0;
 				rwe = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
@@ -692,6 +728,7 @@ begin : DECODE
 				aluop = BLTZ_OP;
 				dmwe = 0;
 				rwe = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
@@ -703,6 +740,7 @@ begin : DECODE
 				aluop = BGEZ_OP;
 				dmwe = 0;
 				rwe = 0;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
@@ -718,6 +756,7 @@ begin : DECODE
 				aluop = J_OP;
 				dmwe = 0;
 				rwe = 0;
+				dm_byte = 0;
 			end
 			JAL: begin
 				br = 0;
@@ -726,6 +765,7 @@ begin : DECODE
 				aluop = JAL_OP;
 				dmwe = 0;
 				rwe = 1;
+				dm_byte = 0;
 			end
 		endcase
 	end

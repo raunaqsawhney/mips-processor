@@ -1,4 +1,4 @@
-module writeback(o, d, dataout, insn, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, insn_to_d, rwe_wb);
+module writeback(o, d, dataout, insn, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, dm_byte, insn_to_d, rwe_wb);
 
 parameter JAL_OP    	= 6'b100000;
 parameter JALR_OP	= 6'b010001;
@@ -17,6 +17,7 @@ input wire dmwe;
 input wire rwe;
 input wire rdst;
 input wire rwd;
+input wire dm_byte;
 
 // Output Data Ports
 output reg [31:0] dataout;

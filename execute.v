@@ -1,4 +1,4 @@
-module execute (pc, rA, rB, insn, aluOut, rBOut, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, pc_effective, do_branch, mx_bypass, do_mx_bypass, wx_bypass, do_wx_bypass, mx_bypass_b, do_mx_bypass_b, wx_bypass_b, do_wx_bypass_b);
+module execute (pc, rA, rB, insn, aluOut, rBOut, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, dm_byte, pc_effective, do_branch, mx_bypass, do_mx_bypass, wx_bypass, do_wx_bypass, mx_bypass_b, do_mx_bypass_b, wx_bypass_b, do_wx_bypass_b);
 
 /****************ALUOPS******************/
 // These are used for the ALU inside
@@ -35,8 +35,9 @@ parameter BLEZ_OP	= 6'b011100;
 parameter BLTZ_OP 	= 6'b011101;
 parameter BGEZ_OP  	= 6'b011110;
 parameter J_OP 		= 6'b011111;
-parameter JAL_OP    = 6'b100000;
+parameter JAL_OP    	= 6'b100000;
 parameter NOP_OP	= 6'b100001;
+parameter MUL_PSEUDO_OP	= 6'b100010;
 /**************************************/
 
 // Input Ports
@@ -66,6 +67,7 @@ input wire dmwe;
 input wire rwe;
 input wire rdst;
 input wire rwd;
+input wire dm_byte;
 
 // Output Data Ports
 output reg [31:0] aluOut;
@@ -88,6 +90,7 @@ reg [31:0] lo;
 
 // Registers for holding rA and rB input values from Decode
 reg [31:0] rA_REG, rB_REG;
+reg [63:0] temp;
 
 assign rBOut = rB_REG;
 
@@ -134,14 +137,18 @@ begin : EXECUTE
 				1'b1: aluOut = rA_REG - { { 16{ insn[15] } }, insn[15:0] };
 			endcase
 		end
+		MUL_PSEUDO_OP: begin
+			temp = rA_REG * rB_REG;
+			aluOut = temp[31:0];
+		end
 		MULT_OP: begin
-			lo = rA_REG * rB_REG;
-			aluOut = 32'hx;
+			temp = rA_REG * rB_REG;
+			hi = temp[63:32];
+			lo = temp[31:0];
 		end
 		DIV_OP: begin
 			lo = rA_REG / rB_REG;
 			hi = rA_REG % rB_REG;
-			aluOut = 32'hx;
 		end
 		MFHI_OP: begin
 			aluOut = hi;

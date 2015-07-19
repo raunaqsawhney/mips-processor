@@ -1,4 +1,4 @@
-module memory (clock, address, data_in, access_size, rw, enable, busy, data_out, wm_bypass, do_wm_bypass, do_branch);
+module memory (clock, address, data_in, access_size, dm_byte, rw, enable, busy, data_out, wm_bypass, do_wm_bypass, do_branch);
 
 parameter memory_depth = 1048576;
 parameter base_addr = 32'h80020000;
@@ -9,11 +9,10 @@ input wire[31:0] data_in;
 input wire[1:0] access_size;
 input wire rw;
 input wire enable;
-
 input wire do_branch;
-
 input wire [31:0] wm_bypass;
 input wire do_wm_bypass;
+input wire dm_byte;
 
 output reg busy;
 output reg [31:0] data_out;
@@ -32,7 +31,6 @@ reg [31:0] data_to_write;
 always @(posedge clock)
 begin : WRITE
 	if (!rw && enable) begin
-		
 		if (do_wm_bypass == 1) begin
 			data_to_write = wm_bypass;
 		end else begin
@@ -55,13 +53,26 @@ always @(posedge clock)
 begin : READ
 	if (rw && enable) begin
 		if (access_size == 2'b00) begin
-			//read_total_words = 1;
 			busy = 1;
 			data_out[7:0] 	<= mem[address - base_addr + 3];
 			data_out[15:8] 	<= mem[address - base_addr + 2];
 			data_out[23:16] <= mem[address - base_addr + 1];
 			data_out[31:24] <= mem[address - base_addr + 0];
 		end
+
+		/*
+		if (access_size == 2'b00 & dm_byte === 0) begin
+			busy = 1;
+			data_out[7:0] 	<= mem[address - base_addr + 3];
+			data_out[15:8] 	<= mem[address - base_addr + 2];
+			data_out[23:16] <= mem[address - base_addr + 1];
+			data_out[31:24] <= mem[address - base_addr + 0];
+		end else if (access_size == 2'b00 & dm_byte === 1) begin
+			busy = 1;
+			data_out <= { { 24{ mem[address - base_addr + 0] } }, mem[address - base_addr + 0] };
+		end
+		*/
+
 		if (do_branch === 1) begin
 			busy = 1;
 			data_out <= 32'h0;

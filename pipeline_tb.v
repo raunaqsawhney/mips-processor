@@ -27,6 +27,7 @@ wire i_mem_enable;
 wire i_busy;
 wire i_do_wm_bypass;
 wire [31:0] i_wm_bypass;
+wire im_byte;
 
 //DMEM REGS
 wire [31:0] d_address;
@@ -54,6 +55,7 @@ reg dmwe_DX;
 reg rwe_DX;
 reg rdst_DX;
 reg rwd_DX;
+reg dm_byte_DX;
 
 //XM Registers
 reg [31:0] pc_XM;
@@ -68,6 +70,7 @@ reg dmwe_XM;
 reg rwe_XM;
 reg rdst_XM;
 reg rwd_XM;
+reg dm_byte_XM;
 
 //MW Registers
 reg [31:0] pc_MW;
@@ -82,6 +85,7 @@ reg dmwe_MW;
 reg rwe_MW;
 reg rdst_MW;
 reg rwd_MW;
+reg dm_byte_MW;
 
 // Wires from the DECODE Stage
 wire [31:0] rA;
@@ -94,6 +98,7 @@ wire dmwe;
 wire rwe;
 wire rdst;
 wire rwd;
+wire dm_byte;
 
 // Wires from EXECUTE Stage
 wire [31:0] aluOut;
@@ -128,6 +133,7 @@ memory IM (
 	.enable(i_mem_enable),
 	.busy(i_busy),
 	.data_out(i_data_out),
+	.dm_byte(im_byte),
 	.wm_bypass(i_wm_bypass),
 	.do_wm_bypass(i_do_wm_bypass),
 	.do_branch(do_branch)
@@ -159,6 +165,7 @@ decode D0 (
 	.rwe(rwe),
 	.rdst(rdst),
 	.rwd(rwd),
+	.dm_byte(dm_byte),
 	.rd(dataout),
 	.d(insn_to_d),
 	.rwe_wb(rwe_wb)
@@ -177,6 +184,7 @@ execute E0 (
 	.rwe(rwe_DX),
 	.rdst(rdst_DX),
 	.rwd(rwd_DX),
+	.dm_byte(dm_byte_DX),
 	.aluOut(aluOut),
 	.rBOut(rBOut),
 	.pc_effective(pc_effective),
@@ -200,6 +208,7 @@ memory DM (
 	.enable(d_mem_enable),
 	.busy(d_busy),
 	.data_out(d_data_out),
+	.dm_byte(dm_byte_XM),
 	.wm_bypass(dataout),
 	.do_wm_bypass(do_wm_bypass),
 	.do_branch(do_branch_dm)
@@ -218,6 +227,7 @@ writeback W0 (
 	.rwe(rwe_MW),
 	.rdst(rdst_MW),
 	.rwd(rwd_MW),
+	.dm_byte(dm_byte_MW),
 	.insn_to_d(insn_to_d),
 	.rwe_wb(rwe_wb)
 );
@@ -231,7 +241,7 @@ initial begin
 	F0.pc = base_addr - 32'h4;
 
 	// Read input file and fill IMEM
-	file = $fopen("SimpleIf.x", "r");
+	file = $fopen("fact.x", "r");
 	while($feof(file) == 0) begin
 		scan_file = $fscanf(file, "%x", read_data);
 		
@@ -268,6 +278,8 @@ end
 // IMEM Does not need wm bypass, set values accordingly
 assign i_wm_bypass = 32'h0;
 assign i_do_wm_bypass = 1'b0;
+assign im_byte = 1'hx;
+
 assign do_branch_dm = 1'b0;
 
 // Invert the DMWE control signal for enabling data memory for writes
@@ -308,9 +320,12 @@ always @(posedge clock) begin
 	rwe_DX    	<= (stall | do_branch === 1) ? 1'h0 : rwe;
 	rdst_DX   	<= (stall | do_branch === 1) ? 1'h0 : rdst;
 	rwd_DX 	  	<= (stall | do_branch === 1) ? 1'h0 : rwd;
+	dm_byte_DX	<= (stall | do_branch === 1) ? 1'h0 : dm_byte;
 
 	pc_XM		<= pc_DX;
 	IR_XM		<= IR_DX;
+	aluOut_XM 	<= aluOut;
+	rBOut_XM 	<= rBOut;
 	br_XM 		<= br_DX;
 	jp_XM 		<= jp_DX;
 	aluinb_XM 	<= aluinb_DX;
@@ -319,8 +334,7 @@ always @(posedge clock) begin
 	rwe_XM 		<= rwe_DX;
 	rdst_XM 	<= rdst_DX;
 	rwd_XM 		<= rwd_DX;
-	aluOut_XM 	<= aluOut;
-	rBOut_XM 	<= rBOut;
+	dm_byte_XM	<= dm_byte_DX;
 
 	pc_MW 		<= pc_XM;
 	IR_MW 		<= IR_XM;
@@ -334,6 +348,7 @@ always @(posedge clock) begin
 	rwe_MW 		<= rwe_XM;
 	rdst_MW 	<= rdst_XM;
 	rwd_MW 		<= rwd_XM;
+	dm_byte_MW	<= dm_byte_XM;
 
 	// Debug Prints
 	$display("\n\nF/D: PC = %x | IR = %x", pc_FD, i_data_out);
