@@ -54,10 +54,6 @@ end
 always @(posedge clock)
 begin : READ
 	if (rw && enable) begin
-		if (do_branch === 1) begin
-			busy = 1;
-			data_out <= 32'h0;
-		end
 		if (access_size == 2'b00) begin
 			//read_total_words = 1;
 			busy = 1;
@@ -65,6 +61,10 @@ begin : READ
 			data_out[15:8] 	<= mem[address - base_addr + 2];
 			data_out[23:16] <= mem[address - base_addr + 1];
 			data_out[31:24] <= mem[address - base_addr + 0];
+		end
+		if (do_branch === 1) begin
+			busy = 1;
+			data_out <= 32'h0;
 		end
 	end
 end

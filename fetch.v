@@ -44,18 +44,31 @@ begin
 	case(stall)
 		1'b0: begin
 			case(do_branch)
-				1'b0: pc <= pc + 32'h4;
-				1'b1: pc <= pc_effective;
-				default: pc <= pc + 32'h4;
+				1'b0: begin
+					pc <= pc + 32'h4;
+					pc_out <= pc;
+				end
+				1'b1: begin
+					pc <= pc_effective;
+					pc_out <= 32'h0;
+				end
+				default: begin
+					pc <= pc + 32'h4;
+					pc_out <= pc;
+				end
 			endcase
-			pc_out <= pc;
 		end
 		1'b1: begin
 			case(do_branch)
-				1'b0: pc <= pc;
-				1'b1: pc <= pc_effective;
+				1'b0: begin
+					pc <= pc;
+					pc_out <= pc - 32'h4;
+				end
+				1'b1: begin 
+					pc <= pc_effective;
+					pc_out <= 32'h0;
+				end
 			endcase
-			pc_out <= pc - 32'h4;
 		end
 	endcase
 end

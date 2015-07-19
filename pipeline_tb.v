@@ -231,7 +231,7 @@ initial begin
 	F0.pc = base_addr - 32'h4;
 
 	// Read input file and fill IMEM
-	file = $fopen("SimpleAdd.x", "r");
+	file = $fopen("SimpleIf.x", "r");
 	while($feof(file) == 0) begin
 		scan_file = $fscanf(file, "%x", read_data);
 		
@@ -296,18 +296,18 @@ assign stall = do_load_use_stall;
 
 always @(posedge clock) begin
 	
-	pc_DX	 	<= stall ? 32'h0 : pc_FD;
-	IR_DX 		<= stall ? 32'h0 : i_data_out;
-	rA_DX 		<= stall ? 5'h0 : rA;
-	rB_DX 		<= stall ? 5'h0 : rB;
-	br_DX 		<= stall ? 1'h0 : br;
-	jp_DX 		<= stall ? 1'h0 : jp;
-	aluinb_DX 	<= stall ? 1'h0 : aluinb;
-	aluop_DX  	<= stall ? NOP_OP : aluop;
-	dmwe_DX   	<= stall ? 1'h0 : dmwe;
-	rwe_DX    	<= stall ? 1'h0 : rwe;
-	rdst_DX   	<= stall ? 1'h0 : rdst;
-	rwd_DX 	  	<= stall ? 1'h0 : rwd;
+	pc_DX	 	<= (stall | do_branch === 1) ? 32'h0 : pc_FD;
+	IR_DX 		<= (stall | do_branch === 1) ? 32'h0 : i_data_out;
+	rA_DX 		<= (stall | do_branch === 1) ? 5'h0 : rA;
+	rB_DX 		<= (stall | do_branch === 1) ? 5'h0 : rB;
+	br_DX 		<= (stall | do_branch === 1) ? 1'h0 : br;
+	jp_DX 		<= (stall | do_branch === 1) ? 1'h0 : jp;
+	aluinb_DX 	<= (stall | do_branch === 1) ? 1'h0 : aluinb;
+	aluop_DX  	<= (stall | do_branch === 1) ? NOP_OP : aluop;
+	dmwe_DX   	<= (stall | do_branch === 1) ? 1'h0 : dmwe;
+	rwe_DX    	<= (stall | do_branch === 1) ? 1'h0 : rwe;
+	rdst_DX   	<= (stall | do_branch === 1) ? 1'h0 : rdst;
+	rwd_DX 	  	<= (stall | do_branch === 1) ? 1'h0 : rwd;
 
 	pc_XM		<= pc_DX;
 	IR_XM		<= IR_DX;
