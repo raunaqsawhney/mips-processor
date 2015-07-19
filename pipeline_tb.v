@@ -2,22 +2,23 @@ module pipeline_tb;
 
 parameter base_addr 	= 32'h80020000;
 parameter NOP_OP	= 6'b100001;
-parameter LW		= 6'b100011;
-parameter SW		= 6'b101011;
-
-reg clock;
+parameter LW		= 6'b100011; //LW
+parameter SW		= 6'b101011; //SW
 
 // File IO 
-parameter filename = "SimpleIf.x";
 integer file;
 integer count;
 integer words_read;
 integer scan_file;
-integer i;
+
 reg[31:0] read_data;
 reg[31:0] data_read;
+wire stall;
+integer i;
 
-//IMEM Wires
+reg clock;
+
+//IMEM REGS
 wire [31:0] i_address;
 wire [31:0] i_data_in;
 wire [1:0] i_access_size;
@@ -27,7 +28,7 @@ wire i_busy;
 wire i_do_wm_bypass;
 wire [31:0] i_wm_bypass;
 
-//DMEM WIRES
+//DMEM REGS
 wire [31:0] d_address;
 wire [31:0] d_data_in;
 reg [1:0] d_access_size;
@@ -35,8 +36,7 @@ wire d_rw;
 reg d_mem_enable;
 wire d_busy;
 
-//FD WIRES
-wire stall;
+//FD Registers
 wire [31:0] pc_FD;
 wire [31:0] i_data_out;
 
@@ -101,7 +101,7 @@ wire dmwe_XM_inverted;
 wire [31:0] pc_effective;
 wire do_branch;
 
-// Data Wires (From MEMORY Stage)
+//Data Wires (From MEMORY Stage)
 wire [31:0] d_data_out;
 
 //Wires from WRITEBACK Stage
@@ -117,6 +117,9 @@ wire do_wm_bypass;
 wire do_mx_bypass_b;
 wire do_wx_bypass_b;
 wire do_load_use_stall;
+
+wire[31:0] pc_FD_W;
+wire[31:0] IR_FD_W;
 
 memory IM (
 	.clock(clock),
@@ -228,7 +231,7 @@ initial begin
 	F0.pc = base_addr - 32'h4;
 
 	// Read input file and fill IMEM
-	file = $fopen(filename, "r");
+	file = $fopen("Swap.x", "r");
 	while($feof(file) == 0) begin
 		scan_file = $fscanf(file, "%x", read_data);
 		
@@ -292,18 +295,18 @@ assign stall = do_load_use_stall;
 
 always @(posedge clock) begin
 	
-	pc_DX	 	<= (stall | do_branch === 1) ? 32'h0 : pc_FD;
-	IR_DX 		<= (stall | do_branch === 1) ? 32'h0 : i_data_out;
-	rA_DX 		<= (stall | do_branch === 1) ? 5'b0 : rA;
-	rB_DX 		<= (stall | do_branch === 1) ? 5'b0 : rB;
-	br_DX 		<= (stall | do_branch === 1) ? 1'b0 : br;
-	jp_DX 		<= (stall | do_branch === 1) ? 1'b0 : jp;
-	aluinb_DX 	<= (stall | do_branch === 1) ? 1'b0 : aluinb;
-	aluop_DX  	<= (stall | do_branch === 1) ? NOP_OP : aluop;
-	dmwe_DX   	<= (stall | do_branch === 1) ? 1'b0 : dmwe;
-	rwe_DX    	<= (stall | do_branch === 1) ? 1'b0 : rwe;
-	rdst_DX   	<= (stall | do_branch === 1) ? 1'b0 : rdst;
-	rwd_DX 	  	<= (stall | do_branch === 1) ? 1'b0 : rwd;
+	pc_DX	 	<= stall ? 32'h0 : pc_FD;
+	IR_DX 		<= stall ? 32'h0 : i_data_out;
+	rA_DX 		<= stall ? 5'h0 : rA;
+	rB_DX 		<= stall ? 5'h0 : rB;
+	br_DX 		<= stall ? 1'h0 : br;
+	jp_DX 		<= stall ? 1'h0 : jp;
+	aluinb_DX 	<= stall ? 1'h0 : aluinb;
+	aluop_DX  	<= stall ? NOP_OP : aluop;
+	dmwe_DX   	<= stall ? 1'h0 : dmwe;
+	rwe_DX    	<= stall ? 1'h0 : rwe;
+	rdst_DX   	<= stall ? 1'h0 : rdst;
+	rwd_DX 	  	<= stall ? 1'h0 : rwd;
 
 	pc_XM		<= pc_DX;
 	IR_XM		<= IR_DX;

@@ -98,7 +98,7 @@ parameter BLEZ_OP	= 6'b011100;
 parameter BLTZ_OP 	= 6'b011101;
 parameter BGEZ_OP  	= 6'b011110;
 parameter J_OP 		= 6'b011111;
-parameter JAL_OP    = 6'b100000;
+parameter JAL_OP    	= 6'b100000;
 parameter NOP_OP	= 6'b100001;
 /**************************************/
 
