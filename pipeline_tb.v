@@ -1,5 +1,7 @@
 module pipeline_tb;
 
+parameter filename 	= "SumArray.x";
+
 parameter base_addr 	= 32'h80020000;
 parameter NOP_OP	= 6'b100001;
 parameter LW		= 6'b100011; //LW
@@ -34,7 +36,7 @@ wire [31:0] d_address;
 wire [31:0] d_data_in;
 reg [1:0] d_access_size;
 wire d_rw;
-reg d_mem_enable;
+wire d_mem_enable;
 wire d_busy;
 wire do_branch_dm;
 
@@ -117,8 +119,8 @@ wire rwe_wb;
 
 // Bypass Wires
 wire [4:0] rd_XM, rd_MW, rd_DX;
-wire do_mx_bypass;
-wire do_wx_bypass;
+wire do_mx_bypass_a;
+wire do_wx_bypass_a;
 wire do_wm_bypass;
 wire do_mx_bypass_b;
 wire do_wx_bypass_b;
@@ -190,9 +192,9 @@ execute E0 (
 	.pc_effective(pc_effective),
 	.do_branch(do_branch),
 	.mx_bypass(aluOut_XM),
-	.do_mx_bypass(do_mx_bypass),
+	.do_mx_bypass_a(do_mx_bypass_a),
 	.wx_bypass(dataout),
-	.do_wx_bypass(do_wx_bypass),
+	.do_wx_bypass_a(do_wx_bypass_a),
 	.mx_bypass_b(aluOut_XM),
 	.do_mx_bypass_b(do_mx_bypass_b),
 	.wx_bypass_b(dataout),
@@ -241,7 +243,7 @@ initial begin
 	F0.pc = base_addr - 32'h4;
 
 	// Read input file and fill IMEM
-	file = $fopen("fact.x", "r");
+	file = $fopen(filename, "r");
 	while($feof(file) == 0) begin
 		scan_file = $fscanf(file, "%x", read_data);
 		
@@ -270,10 +272,11 @@ initial begin
     	D0.R0.REGFILE[31] = 32'hdeadbeef; 
 
 	d_access_size = 2'b00;
-	d_mem_enable = 1;
+	//d_mem_enable = 1;
 	
 end
 
+assign d_mem_enable = (IR_XM[31:26] === LW | IR_XM[31:26] == SW) ? 1 : 0;
 
 // IMEM Does not need wm bypass, set values accordingly
 assign i_wm_bypass = 32'h0;
@@ -291,21 +294,26 @@ assign rd_XM = (rdst_XM) ? IR_XM[15:11] : IR_XM[20:16];
 assign rd_MW = (rdst_MW) ? IR_MW[15:11] : IR_MW[20:16];
 
 // Perform MX Bypass
-assign do_mx_bypass = rwe_XM & (IR_DX[25:21] == rd_XM);
-assign do_mx_bypass_b = rwe_XM & rdst_DX & (IR_DX[20:16] == rd_XM);
+assign do_mx_bypass_a = rwe_XM & (IR_DX[25:21] == rd_XM);		//MX Bypass for input A
+assign do_mx_bypass_b = rwe_XM & rdst_DX & (IR_DX[20:16] == rd_XM); 	//MX Bypass for input B
 
 // Perform WX Bypass
-assign do_wx_bypass = rwe_MW & (IR_DX[25:21] == rd_MW);
-assign do_wx_bypass_b = rwe_MW & rdst_DX & (IR_DX[20:16] == rd_MW);
+assign do_wx_bypass_a = rwe_MW & (IR_DX[25:21] == rd_MW) & ~do_mx_bypass_a;		//WX Bypass for input A
+assign do_wx_bypass_b = rwe_MW & rdst_DX & (IR_DX[20:16] == rd_MW) & ~do_mx_bypass_b;	//WX Bypass for input B
 
 // Perform WM Bypass
 assign do_wm_bypass = rwe_MW & dmwe_XM & (IR_XM[20:16] == rd_MW);
+
+
+
+
+
 
 // Perform Load-Use Stall
 // TODO: Add support to detect LB and SB instructions
 assign do_load_use_stall = (IR_DX[31:26] === LW) & ((i_data_out[25:21] === rd_DX) | ((i_data_out[20:16] === rd_DX) & (i_data_out[31:26] !== SW)));
 assign stall = do_load_use_stall;
-
+  
 always @(posedge clock) begin
 	
 	pc_DX	 	<= (stall | do_branch === 1) ? 32'h0 : pc_FD;

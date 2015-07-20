@@ -2,104 +2,104 @@ module decode(clock, pc, insn, rA, rB, br, jp, aluinb, aluop, dmwe, rwe, rdst, r
 
 /****************OPCODES****************/
 // R-Type FUNC Codes
-parameter ADD 		= 6'b100000; 
-parameter ADDU 		= 6'b100001; 
-parameter SUB		= 6'b100010; 
-parameter SUBU		= 6'b100011; 	
-parameter MULT		= 6'b011000; 	
-parameter MULTU 	= 6'b011001; 		
-parameter DIV		= 6'b011010; 		
-parameter DIVU 		= 6'b011011; 		
-parameter MFHI		= 6'b010000; 		
-parameter MFLO 		= 6'b010010; 		
-parameter SLT		= 6'b101010; 
-parameter SLTU		= 6'b101011; 
-parameter SLL		= 6'b000000; 
-parameter SLLV		= 6'b000100; 
-parameter SRL		= 6'b000010; 
-parameter SRLV		= 6'b000110; 
-parameter SRA		= 6'b000011; 
-parameter SRAV		= 6'b000111; 
-parameter AND		= 6'b100100; 
-parameter OR		= 6'b100101; 
-parameter XOR		= 6'b100110; 
-parameter NOR		= 6'b100111; 
-parameter JALR		= 6'b001001; 		
-parameter JR		= 6'b001000; 		
+parameter ADD 			= 6'b100000; 
+parameter ADDU 			= 6'b100001; 
+parameter SUB			= 6'b100010; 
+parameter SUBU			= 6'b100011; 	
+parameter MULT			= 6'b011000; 	
+parameter MULTU 		= 6'b011001; 		
+parameter DIV			= 6'b011010; 		
+parameter DIVU 			= 6'b011011; 		
+parameter MFHI			= 6'b010000; 		
+parameter MFLO 			= 6'b010010; 		
+parameter SLT			= 6'b101010; 
+parameter SLTU			= 6'b101011; 
+parameter SLL			= 6'b000000; 
+parameter SLLV			= 6'b000100; 
+parameter SRL			= 6'b000010; 
+parameter SRLV			= 6'b000110; 
+parameter SRA			= 6'b000011; 
+parameter SRAV			= 6'b000111; 
+parameter AND			= 6'b100100; 
+parameter OR			= 6'b100101; 
+parameter XOR			= 6'b100110; 
+parameter NOR			= 6'b100111; 
+parameter JALR			= 6'b001001; 		
+parameter JR			= 6'b001000; 		
 
 // MUL R-TYPE Opcode
-parameter MUL_OP 	= 6'b011100; 	//MUL OPCODE
-parameter MUL_FUNC 	= 6'b000010; 	//MUL FUNCTION CODE
+parameter MUL_OP 		= 6'b011100; 	//MUL OPCODE
+parameter MUL_FUNC 		= 6'b000010; 	//MUL FUNCTION CODE
 
 // I-Type Opcodes
-parameter ADDI  	= 6'b001000; 
-parameter ADDIU 	= 6'b001001; 
-parameter SLTI  	= 6'b001010; 
-parameter SLTIU 	= 6'b001011; 
-parameter ANDI  	= 6'b001100; 
-parameter ORI		= 6'b001101; 
-parameter XORI  	= 6'b001110; 
-parameter LW		= 6'b100011; 
-parameter SW		= 6'b101011; 
-parameter LB		= 6'b100000; 
-parameter LUI   	= 6'b001111; 
-parameter SB		= 6'b101000; 
-parameter LBU		= 6'b100100; 
-parameter BEQ		= 6'b000100; 
-parameter BNE		= 6'b000101; 
-parameter BGTZ		= 6'b000111; 
-parameter BLEZ		= 6'b000110; 
+parameter ADDI  		= 6'b001000; 
+parameter ADDIU 		= 6'b001001; 
+parameter SLTI  		= 6'b001010; 
+parameter SLTIU 		= 6'b001011; 
+parameter ANDI  		= 6'b001100; 
+parameter ORI			= 6'b001101; 
+parameter XORI  		= 6'b001110; 
+parameter LW			= 6'b100011; 
+parameter SW			= 6'b101011; 
+parameter LB			= 6'b100000; 
+parameter LUI   		= 6'b001111; 
+parameter SB			= 6'b101000; 
+parameter LBU			= 6'b100100; 
+parameter BEQ			= 6'b000100; 
+parameter BNE			= 6'b000101; 
+parameter BGTZ			= 6'b000111; 
+parameter BLEZ			= 6'b000110; 
 
 // REGIMM Opcodes
-parameter BLTZ 		= 6'b00000; 
-parameter BGEZ 		= 6'b00001; 
+parameter BLTZ 			= 6'b00000; 
+parameter BGEZ 			= 6'b00001; 
 
 // J-Type Opcodes (not including JR, JALR)
-parameter J     	= 6'b000010;
-parameter JAL		= 6'b000011;
+parameter J     		= 6'b000010;
+parameter JAL			= 6'b000011;
 
 // Other 
-parameter NOP   	= 6'b000000;
-parameter RTYPE 	= 6'b000000;
+parameter NOP   		= 6'b000000;
+parameter RTYPE 		= 6'b000000;
 /****************************************/
 
 /****************ALUOPS******************/
 // These are used for the ALU inside
 // Execute module
-parameter ADD_OP 	= 6'b000000;
-parameter SUB_OP	= 6'b000001;
-parameter MULT_OP	= 6'b000010;
-parameter DIV_OP	= 6'b000011;
-parameter MFHI_OP	= 6'b000100;
-parameter MFLO_OP 	= 6'b000101;
-parameter SLT_OP	= 6'b000110;
-parameter SLL_OP	= 6'b000111;
-parameter SLLV_OP	= 6'b001000;
-parameter SRL_OP	= 6'b001001;
-parameter SRLV_OP	= 6'b001010;
-parameter SRA_OP	= 6'b001011;
-parameter SRAV_OP	= 6'b001100;
-parameter AND_OP	= 6'b001101;
-parameter OR_OP		= 6'b001110;
-parameter XOR_OP	= 6'b001111;
-parameter NOR_OP	= 6'b010000;
-parameter JALR_OP	= 6'b010001;
-parameter JR_OP		= 6'b010010;
-parameter LW_OP		= 6'b010011;
-parameter SW_OP		= 6'b010100;
-parameter LB_OP		= 6'b010101;
-parameter LUI_OP   	= 6'b010110;
-parameter SB_OP		= 6'b010111;
-parameter LBU_OP	= 6'b011000;
-parameter BEQ_OP	= 6'b011001;
-parameter BNE_OP	= 6'b011010;
-parameter BGTZ_OP	= 6'b011011;
-parameter BLEZ_OP	= 6'b011100;
-parameter BLTZ_OP 	= 6'b011101;
-parameter BGEZ_OP  	= 6'b011110;
-parameter J_OP 		= 6'b011111;
+parameter ADD_OP 		= 6'b000000;
+parameter SUB_OP		= 6'b000001;
+parameter MULT_OP		= 6'b000010;
+parameter DIV_OP		= 6'b000011;
+parameter MFHI_OP		= 6'b000100;
+parameter MFLO_OP 		= 6'b000101;
+parameter SLT_OP		= 6'b000110;
+parameter SLL_OP		= 6'b000111;
+parameter SLLV_OP		= 6'b001000;
+parameter SRL_OP		= 6'b001001;
+parameter SRLV_OP		= 6'b001010;
+parameter SRA_OP		= 6'b001011;
+parameter SRAV_OP		= 6'b001100;
+parameter AND_OP		= 6'b001101;
+parameter OR_OP			= 6'b001110;
+parameter XOR_OP		= 6'b001111;
+parameter NOR_OP		= 6'b010000;
+parameter JALR_OP		= 6'b010001;
+parameter JR_OP			= 6'b010010;
+parameter LW_OP			= 6'b010011;
+parameter SW_OP			= 6'b010100;
+parameter LB_OP			= 6'b010101;
+parameter LUI_OP   		= 6'b010110;
+parameter SB_OP			= 6'b010111;
+parameter LBU_OP		= 6'b011000;
+parameter BEQ_OP		= 6'b011001;
+parameter BNE_OP		= 6'b011010;
+parameter BGTZ_OP		= 6'b011011;
+parameter BLEZ_OP		= 6'b011100;
+parameter BLTZ_OP 		= 6'b011101;
+parameter BGEZ_OP  		= 6'b011110;
+parameter J_OP 			= 6'b011111;
 parameter JAL_OP    	= 6'b100000;
-parameter NOP_OP	= 6'b100001;
+parameter NOP_OP		= 6'b100001;
 parameter MUL_PSEUDO_OP	= 6'b100010;
 /**************************************/
 
@@ -107,7 +107,7 @@ parameter MUL_PSEUDO_OP	= 6'b100010;
 input clock;
 input wire [31:0] pc;
 input wire [31:0] insn;
-input wire [31:0] rd;		// Input rd of REGFILE (wired to R0 module)
+input wire [31:0] rd;			// Input rd of REGFILE (wired to R0 module)
 input wire [4:0] d;			// Input d of REGFILE (wired to R0 module)
 input wire rwe_wb;
 
@@ -348,7 +348,7 @@ begin : DECODE
 				rwd = 0;
 				dm_byte = 0;
 
-				s1 = 5'h0;		
+				s1 = insn[25:21];		
 				s2 = insn[20:16];	
 			end
 			SLLV: begin
@@ -376,7 +376,7 @@ begin : DECODE
 				rwd = 0;
 				dm_byte = 0;
 
-				s1 = 5'h0;			
+				s1 = insn[25:21];			
 				s2 = insn[20:16];	
 			end
 			SRLV: begin
@@ -404,7 +404,7 @@ begin : DECODE
 				rwd = 0;
 				dm_byte = 0;
 
-				s1 = 5'h0;			
+				s1 = insn[25:21];			
 				s2 = insn[20:16];	
 			end
 			SRAV: begin

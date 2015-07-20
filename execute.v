@@ -1,42 +1,42 @@
-module execute (pc, rA, rB, insn, aluOut, rBOut, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, dm_byte, pc_effective, do_branch, mx_bypass, do_mx_bypass, wx_bypass, do_wx_bypass, mx_bypass_b, do_mx_bypass_b, wx_bypass_b, do_wx_bypass_b);
+module execute (pc, rA, rB, insn, aluOut, rBOut, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, dm_byte, pc_effective, do_branch, mx_bypass, do_mx_bypass_a, wx_bypass, do_wx_bypass_a, mx_bypass_b, do_mx_bypass_b, wx_bypass_b, do_wx_bypass_b);
 
 /****************ALUOPS******************/
 // These are used for the ALU inside
 // Execute module
-parameter ADD_OP 	= 6'b000000;
-parameter SUB_OP	= 6'b000001;
-parameter MULT_OP	= 6'b000010;
-parameter DIV_OP	= 6'b000011;
-parameter MFHI_OP	= 6'b000100;
-parameter MFLO_OP 	= 6'b000101;
-parameter SLT_OP	= 6'b000110;
-parameter SLL_OP	= 6'b000111;
-parameter SLLV_OP	= 6'b001000;
-parameter SRL_OP	= 6'b001001;
-parameter SRLV_OP	= 6'b001010;
-parameter SRA_OP	= 6'b001011;
-parameter SRAV_OP	= 6'b001100;
-parameter AND_OP	= 6'b001101;
-parameter OR_OP		= 6'b001110;
-parameter XOR_OP	= 6'b001111;
-parameter NOR_OP	= 6'b010000;
-parameter JALR_OP	= 6'b010001;
-parameter JR_OP		= 6'b010010;
-parameter LW_OP		= 6'b010011;
-parameter SW_OP		= 6'b010100;
-parameter LB_OP		= 6'b010101;
-parameter LUI_OP   	= 6'b010110;
-parameter SB_OP		= 6'b010111;
-parameter LBU_OP	= 6'b011000;
-parameter BEQ_OP	= 6'b011001;
-parameter BNE_OP	= 6'b011010;
-parameter BGTZ_OP	= 6'b011011;
-parameter BLEZ_OP	= 6'b011100;
-parameter BLTZ_OP 	= 6'b011101;
-parameter BGEZ_OP  	= 6'b011110;
-parameter J_OP 		= 6'b011111;
+parameter ADD_OP 		= 6'b000000;
+parameter SUB_OP		= 6'b000001;
+parameter MULT_OP		= 6'b000010;
+parameter DIV_OP		= 6'b000011;
+parameter MFHI_OP		= 6'b000100;
+parameter MFLO_OP 		= 6'b000101;
+parameter SLT_OP		= 6'b000110;
+parameter SLL_OP		= 6'b000111;
+parameter SLLV_OP		= 6'b001000;
+parameter SRL_OP		= 6'b001001;
+parameter SRLV_OP		= 6'b001010;
+parameter SRA_OP		= 6'b001011;
+parameter SRAV_OP		= 6'b001100;
+parameter AND_OP		= 6'b001101;
+parameter OR_OP			= 6'b001110;
+parameter XOR_OP		= 6'b001111;
+parameter NOR_OP		= 6'b010000;
+parameter JALR_OP		= 6'b010001;
+parameter JR_OP			= 6'b010010;
+parameter LW_OP			= 6'b010011;
+parameter SW_OP			= 6'b010100;
+parameter LB_OP			= 6'b010101;
+parameter LUI_OP   		= 6'b010110;
+parameter SB_OP			= 6'b010111;
+parameter LBU_OP		= 6'b011000;
+parameter BEQ_OP		= 6'b011001;
+parameter BNE_OP		= 6'b011010;
+parameter BGTZ_OP		= 6'b011011;
+parameter BLEZ_OP		= 6'b011100;
+parameter BLTZ_OP 		= 6'b011101;
+parameter BGEZ_OP  		= 6'b011110;
+parameter J_OP 			= 6'b011111;
 parameter JAL_OP    	= 6'b100000;
-parameter NOP_OP	= 6'b100001;
+parameter NOP_OP		= 6'b100001;
 parameter MUL_PSEUDO_OP	= 6'b100010;
 /**************************************/
 
@@ -48,9 +48,9 @@ input wire [31:0] rB;
 
 // Bypass Input signals (for input A)
 input wire [31:0] mx_bypass;
-input wire do_mx_bypass;
+input wire do_mx_bypass_a;
 input wire [31:0] wx_bypass;
-input wire do_wx_bypass;
+input wire do_wx_bypass_a;
 
 // Bypass Input signals (for input B)
 input wire [31:0] mx_bypass_b;
@@ -96,20 +96,20 @@ assign rBOut = rB_REG;
 
 // Compute effective PC for Jumps or Branches and set signals
 // that are read in FETCH Module for PC
-assign pc_effective = (jp) ? jump_effective_address : branch_effective_address;
+assign pc_effective = (jp) ? jump_effective_address : (br ? branch_effective_address : 32'hx);
 assign do_branch = (branch_output & br) | jp;
 
-always @(insn, aluop, rA, rB, do_mx_bypass, do_wx_bypass, mx_bypass, wx_bypass, do_mx_bypass_b, do_wx_bypass_b, mx_bypass_b, wx_bypass_b)
+always @(insn, aluop, aluinb, rA, rB, do_mx_bypass_a, do_wx_bypass_a, mx_bypass, wx_bypass, do_mx_bypass_b, do_wx_bypass_b, mx_bypass_b, wx_bypass_b)
 begin : EXECUTE
 
 	// Bypass paths for input A
-	if (do_mx_bypass == 1) begin
+	if (do_mx_bypass_a == 1) begin
 		rA_REG = mx_bypass;
 	end
-	if (do_wx_bypass == 1) begin
+	if (do_wx_bypass_a == 1) begin
 		rA_REG = wx_bypass;
 	end 
-	if (do_mx_bypass !== 1 & do_wx_bypass !== 1)begin
+	if (do_mx_bypass_a !== 1 & do_wx_bypass_a !== 1)begin
 		rA_REG = rA;
 	end
 

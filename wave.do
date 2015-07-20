@@ -32,6 +32,7 @@ add wave -noupdate -radix hexadecimal /pipeline_tb/rwe_XM
 add wave -noupdate -radix hexadecimal /pipeline_tb/rdst_XM
 add wave -noupdate -radix hexadecimal /pipeline_tb/rwd_XM
 add wave -noupdate -radix hexadecimal /pipeline_tb/DM/rw
+add wave -noupdate /pipeline_tb/d_mem_enable
 add wave -noupdate -radix hexadecimal /pipeline_tb/DM/address
 add wave -noupdate -radix hexadecimal /pipeline_tb/DM/data_in
 add wave -noupdate -radix hexadecimal /pipeline_tb/DM/data_out
@@ -47,21 +48,27 @@ add wave -noupdate -radix hexadecimal /pipeline_tb/rwe_MW
 add wave -noupdate -radix hexadecimal /pipeline_tb/rdst_MW
 add wave -noupdate -radix hexadecimal /pipeline_tb/rwd_MW
 add wave -noupdate -radix hexadecimal /pipeline_tb/rwe_wb
-add wave -noupdate -radix hexadecimal /pipeline_tb/do_mx_bypass
-add wave -noupdate -radix hexadecimal /pipeline_tb/do_wx_bypass
-add wave -noupdate -radix hexadecimal /pipeline_tb/do_wm_bypass
+add wave -noupdate /pipeline_tb/do_mx_bypass_a
 add wave -noupdate -radix hexadecimal /pipeline_tb/do_mx_bypass_b
+add wave -noupdate /pipeline_tb/do_wx_bypass_a
 add wave -noupdate -radix hexadecimal /pipeline_tb/do_wx_bypass_b
+add wave -noupdate -radix hexadecimal /pipeline_tb/do_wm_bypass
 add wave -noupdate -radix hexadecimal /pipeline_tb/rd_XM
 add wave -noupdate -radix hexadecimal /pipeline_tb/rd_MW
 add wave -noupdate -radix hexadecimal /pipeline_tb/do_load_use_stall
+add wave -noupdate -radix hexadecimal /pipeline_tb/W0/br
+add wave -noupdate -radix hexadecimal /pipeline_tb/W0/jp
+add wave -noupdate -radix hexadecimal /pipeline_tb/W0/aluinb
+add wave -noupdate -radix hexadecimal /pipeline_tb/W0/aluop
+add wave -noupdate -radix hexadecimal /pipeline_tb/W0/dmwe
+add wave -noupdate -radix hexadecimal /pipeline_tb/W0/rwe
+add wave -noupdate -radix hexadecimal /pipeline_tb/W0/rdst
+add wave -noupdate -radix hexadecimal /pipeline_tb/W0/rwd
 add wave -noupdate -radix hexadecimal /pipeline_tb/W0/o
 add wave -noupdate -radix hexadecimal /pipeline_tb/W0/dataout
 add wave -noupdate -radix hexadecimal /pipeline_tb/W0/insn_to_d
-add wave -noupdate -radix hexadecimal /pipeline_tb/D0/R0/d
-add wave -noupdate -radix hexadecimal /pipeline_tb/D0/R0/rd
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {160 ps} 0}
+WaveRestoreCursors {{Cursor 1} {2203 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 196
 configure wave -valuecolwidth 100
@@ -77,4 +84,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {131 ps} {204 ps}
+WaveRestoreZoom {2101 ps} {2174 ps}
