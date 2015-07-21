@@ -47,8 +47,12 @@ begin : WRITE
 					mem[address - base_addr + 1] <= data_to_write[23:16];
 					mem[address - base_addr + 0] <= data_to_write[31:24];
 				end
-				1'b1: begin
-					mem[address] <= data_to_write[7:0];
+				1'b1: mem[address - base_addr] <= data_to_write[7:0];
+				default: begin
+					mem[address - base_addr + 3] <= data_to_write[7:0];
+					mem[address - base_addr + 2] <= data_to_write[15:8];
+					mem[address - base_addr + 1] <= data_to_write[23:16];
+					mem[address - base_addr + 0] <= data_to_write[31:24];
 				end
 			endcase
 		end
@@ -60,6 +64,7 @@ begin : READ
 	if (rw && enable) begin
 		if (access_size == 2'b00) begin
 			busy = 1;
+			/*
 			case (dm_byte)
 				1'b0: begin
 					data_out[7:0] 	<= mem[address - base_addr + 3];
@@ -69,10 +74,22 @@ begin : READ
 				end
 				1'b1: begin
 					// TODO: Testing for working LBU
-					data_out <= { { 24{ 1'b0 } }, mem[address] };
+					data_out <= { { 24{ 1'b0 } }, mem[address - base_addr] };
 				end
+				default: begin
+					data_out[7:0] 	<= mem[address - base_addr + 3];
+					data_out[15:8] 	<= mem[address - base_addr + 2];
+					data_out[23:16] <= mem[address - base_addr + 1];
+					data_out[31:24] <= mem[address - base_addr + 0];
+				end	
 			endcase
+			*/
+			data_out[7:0] 	<= mem[address - base_addr + 3];
+			data_out[15:8] 	<= mem[address - base_addr + 2];
+			data_out[23:16] <= mem[address - base_addr + 1];
+			data_out[31:24] <= mem[address - base_addr + 0];
 		end
+
 		if (do_branch === 1) begin
 			busy = 1;
 			data_out <= 32'h0;

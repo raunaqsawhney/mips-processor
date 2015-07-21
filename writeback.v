@@ -40,13 +40,13 @@ begin : WRITEBACK
 		1'b0: insn_to_d <= insn[20:16]; //rt
 		1'b1: insn_to_d <= insn[15:11]; //rd
 	endcase
-
+	
 	if (aluop == LB_OP) begin
 		dataout <= { { 24{ d[31] } }, d[31:24] };
 	end
-	//if (aluop == LBU_OP) begin
-//		dataout <= { { 24{ 1'b0 } }, d[31:24] };
-//	end
+	if (aluop == LBU_OP) begin
+		dataout <= { { 24{ 1'b0 } }, d[31:24] };
+	end
 	if (aluop == JAL_OP || aluop == JALR_OP) begin
 		// In the SPECIAL case of JAL and JALR insns, the return address register rA (r31)
 		// should be written be value PC + 8

@@ -154,6 +154,8 @@ begin : DECODE
 		aluinb = 0;
 		aluop = NOP_OP;
 		rwe = 0;
+		rdst = 1;
+		rwd = 0;
 		dmwe = 0;
 		dm_byte = 0;
 
@@ -264,6 +266,7 @@ begin : DECODE
 				aluop = DIV_OP;
 				dmwe = 0;
 				rwe = 0;
+				rdst = 1;
 				dm_byte = 0;
 
 				s1 = insn[25:21];	
@@ -276,6 +279,7 @@ begin : DECODE
 				aluop = DIV_OP;
 				dmwe = 0;
 				rwe = 0;
+				rdst = 1;
 				dm_byte = 0;
 
 				s1 = insn[25:21];	
@@ -287,9 +291,9 @@ begin : DECODE
 				aluinb = 0;
 				aluop = MFHI_OP;
 				dmwe = 0;
-				rwe = 0;
-				rdst = 1;		
-				rwd = 0;
+				rwe = 1;
+				rdst = 1;
+				rwd = 0;		
 				dm_byte = 0;
 
 				s1 = 5'h0;	//rs is not needed
@@ -301,9 +305,9 @@ begin : DECODE
 				aluinb = 0;
 				aluop = MFLO_OP;
 				dmwe = 0;
-				rwe = 0;
-				rdst = 1;		
-				rwd = 0;
+				rwe = 1;
+				rdst = 1;
+				rwd = 0;		
 				dm_byte = 0;
 
 				s1 = 5'h0;	//rs is not needed
@@ -348,7 +352,7 @@ begin : DECODE
 				rwd = 0;
 				dm_byte = 0;
 
-				s1 = insn[25:21];		
+				s1 = 5'h0;		
 				s2 = insn[20:16];	
 			end
 			SLLV: begin
@@ -376,7 +380,7 @@ begin : DECODE
 				rwd = 0;
 				dm_byte = 0;
 
-				s1 = insn[25:21];			
+				s1 = 5'h0;			
 				s2 = insn[20:16];	
 			end
 			SRLV: begin
@@ -404,7 +408,7 @@ begin : DECODE
 				rwd = 0;
 				dm_byte = 0;
 
-				s1 = insn[25:21];			
+				s1 = 5'h0;			
 				s2 = insn[20:16];	
 			end
 			SRAV: begin
@@ -624,7 +628,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 0;
 				rwd = 1;
-				dm_byte = 0;
+				dm_byte = 1;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];

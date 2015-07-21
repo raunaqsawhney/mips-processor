@@ -1,4 +1,4 @@
-module execute (pc, rA, rB, insn, aluOut, rBOut, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, dm_byte, pc_effective, do_branch, mx_bypass, do_mx_bypass_a, wx_bypass, do_wx_bypass_a, mx_bypass_b, do_mx_bypass_b, wx_bypass_b, do_wx_bypass_b);
+module execute (clock, pc, rA, rB, insn, aluOut, rBOut, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, dm_byte, pc_effective, do_branch, mx_bypass, do_mx_bypass_a, wx_bypass, do_wx_bypass_a, mx_bypass_b, do_mx_bypass_b, wx_bypass_b, do_wx_bypass_b);
 
 /****************ALUOPS******************/
 // These are used for the ALU inside
@@ -41,6 +41,7 @@ parameter MUL_PSEUDO_OP	= 6'b100010;
 /**************************************/
 
 // Input Ports
+input wire clock;
 input wire [31:0] pc;
 input wire [31:0] insn;
 input wire [31:0] rA;
@@ -99,6 +100,24 @@ assign rBOut = rB_REG;
 assign pc_effective = (jp) ? jump_effective_address : (br ? branch_effective_address : 32'hx);
 assign do_branch = (branch_output & br) | jp;
 
+always @ (posedge clock)
+begin
+	case(aluop)
+		DIV_OP: begin
+			hi <= temp[63:32];
+			lo <= temp[31:0];
+		end
+		MULT_OP: begin
+			hi <= temp[63:32];
+			lo <= temp[31:0];
+		end
+		default: begin
+			hi <= hi;
+			lo <= lo;
+		end
+	endcase
+end
+
 always @(insn, aluop, aluinb, rA, rB, do_mx_bypass_a, do_wx_bypass_a, mx_bypass, wx_bypass, do_mx_bypass_b, do_wx_bypass_b, mx_bypass_b, wx_bypass_b)
 begin : EXECUTE
 
@@ -143,12 +162,10 @@ begin : EXECUTE
 		end
 		MULT_OP: begin
 			temp = rA_REG * rB_REG;
-			hi = temp[63:32];
-			lo = temp[31:0];
 		end
 		DIV_OP: begin
-			lo = rA_REG / rB_REG;
-			hi = rA_REG % rB_REG;
+			temp[31:0] = rA_REG / rB_REG;
+			temp[63:32] = rA_REG % rB_REG;
 		end
 		MFHI_OP: begin
 			aluOut = hi;

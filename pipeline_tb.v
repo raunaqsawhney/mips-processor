@@ -1,6 +1,6 @@
 module pipeline_tb;
 
-parameter filename 	= "CheckVowel.x";
+parameter filename 	= "DivDivDiv.x";
 
 parameter base_addr 	= 32'h80020000;
 
@@ -184,6 +184,7 @@ decode D0 (
 );
 
 execute E0 (
+	.clock(clock),
 	.pc(pc_DX),
 	.rA(rA_DX),
 	.rB(rB_DX),
@@ -284,8 +285,6 @@ initial begin
 	d_access_size = 2'b00;
 end
 
-//assign dm_byte = 0;
-
 assign d_mem_enable = 1;
 
 // IMEM Does not need wm bypass, set values accordingly
@@ -298,6 +297,8 @@ assign do_branch_dm = 1'b0;
 // Invert the DMWE control signal for enabling data memory for writes
 assign dmwe_XM_inverted = ~dmwe_XM;
 
+
+// LOOK AT THE BYPASS PATHS VERY CAREFULLY FOR CHECKVOWEL
 // Determine destination registers for Bypassing and Stall
 assign rd_DX = (rdst_DX) ? IR_DX[15:11] : IR_DX[20:16];
 assign rd_XM = (rdst_XM) ? IR_XM[15:11] : IR_XM[20:16];
@@ -316,9 +317,9 @@ assign do_wm_bypass = rwe_MW & dmwe_XM & (IR_XM[20:16] == rd_MW);
 
 // Perform Load-Use Stall
 // TODO: Add support to detect LB and SB instructions
-assign do_load_use_stall = (IR_DX[31:26] === LW | IR_DX[31:26] === LB | IR_DX[31:26] === LBU) & ((i_data_out[25:21] === rd_DX) | ((i_data_out[20:16] === rd_DX) & (i_data_out[31:26] !== SW | i_data_out[31:26] !== SB )));
 assign stall = do_load_use_stall;
-  
+assign do_load_use_stall =  (IR_DX[31:26] === LW) & ((i_data_out[25:21] === rd_DX) | ((i_data_out[20:16] === rd_DX)) & (i_data_out[31:26] !== SW));
+
 always @(posedge clock) begin
 	
 	pc_DX	 	<= (stall | do_branch === 1) ? 32'h0 : pc_FD;
