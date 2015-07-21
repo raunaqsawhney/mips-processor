@@ -21,6 +21,8 @@ add wave -noupdate -radix hexadecimal /pipeline_tb/pc_effective
 add wave -noupdate -radix hexadecimal /pipeline_tb/do_branch
 add wave -noupdate -radix hexadecimal /pipeline_tb/pc_XM
 add wave -noupdate -radix hexadecimal /pipeline_tb/IR_XM
+add wave -noupdate /pipeline_tb/E0/hi
+add wave -noupdate /pipeline_tb/E0/lo
 add wave -noupdate -radix hexadecimal /pipeline_tb/aluOut_XM
 add wave -noupdate -radix hexadecimal /pipeline_tb/rBOut_XM
 add wave -noupdate -radix hexadecimal /pipeline_tb/br_XM
@@ -68,7 +70,7 @@ add wave -noupdate -radix hexadecimal /pipeline_tb/W0/o
 add wave -noupdate -radix hexadecimal /pipeline_tb/W0/dataout
 add wave -noupdate -radix hexadecimal /pipeline_tb/W0/insn_to_d
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {2203 ps} 0}
+WaveRestoreCursors {{Cursor 1} {5958 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 196
 configure wave -valuecolwidth 100
@@ -84,4 +86,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {2101 ps} {2174 ps}
+WaveRestoreZoom {5951 ps} {6024 ps}
