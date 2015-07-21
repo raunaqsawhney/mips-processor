@@ -231,10 +231,9 @@ begin : EXECUTE
 		SB_OP: begin
 			// Computes address to store BYTE of data in DMEM
 			aluOut = rA_REG + { { 16{ insn[15] } }, insn[15:0] };
-			//TODO: modify DM access size to allow BYTE access instead of WORD
 		end
 		LBU_OP: begin
-			aluOut = rA_REG + { { 16{ 1'b0 } }, insn[15:0] };
+			aluOut = rA_REG + { { 16{ insn[15] } }, insn[15:0] };
 		end
 		BEQ_OP: begin
 			if (rA_REG == rB_REG) begin

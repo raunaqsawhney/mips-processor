@@ -1,15 +1,21 @@
 module pipeline_tb;
 
-parameter filename 	= "DivDivDiv.x";
+parameter filename 	= "CheckVowel.x";
 
 parameter base_addr 	= 32'h80020000;
+
+parameter LW		= 6'b100011; 
+parameter SW		= 6'b101011; 
+parameter LB		= 6'b100000; 
+parameter LUI   	= 6'b001111; 
+parameter SB		= 6'b101000; 
+parameter LBU		= 6'b100100; 
+
 parameter NOP_OP	= 6'b100001;
-parameter LW		= 6'b100011; //LW
-parameter SW		= 6'b101011; //SW
-parameter MULT_OP		= 6'b000010;
-parameter DIV_OP		= 6'b000011;
-parameter MFHI_OP		= 6'b000100;
-parameter MFLO_OP 		= 6'b000101;
+parameter MULT_OP	= 6'b000010;
+parameter DIV_OP	= 6'b000011;
+parameter MFHI_OP	= 6'b000100;
+parameter MFLO_OP 	= 6'b000101;
 
 // File IO 
 integer file;
@@ -276,16 +282,16 @@ initial begin
     	D0.R0.REGFILE[31] = 32'hdeadbeef; 
 
 	d_access_size = 2'b00;
-	//d_mem_enable = 1;
-	
 end
 
-assign d_mem_enable = (IR_XM[31:26] === LW | IR_XM[31:26] == SW) ? 1 : 0;
+//assign dm_byte = 0;
+
+assign d_mem_enable = 1;
 
 // IMEM Does not need wm bypass, set values accordingly
 assign i_wm_bypass = 32'h0;
 assign i_do_wm_bypass = 1'b0;
-assign im_byte = 1'hx;
+assign im_byte = 1'b0;
 
 assign do_branch_dm = 1'b0;
 
@@ -308,10 +314,9 @@ assign do_wx_bypass_b = rwe_MW & rdst_DX & (IR_DX[20:16] == rd_MW) & ~do_mx_bypa
 // Perform WM Bypass
 assign do_wm_bypass = rwe_MW & dmwe_XM & (IR_XM[20:16] == rd_MW);
 
-
 // Perform Load-Use Stall
 // TODO: Add support to detect LB and SB instructions
-assign do_load_use_stall = (IR_DX[31:26] === LW) & ((i_data_out[25:21] === rd_DX) | ((i_data_out[20:16] === rd_DX) & (i_data_out[31:26] !== SW)));
+assign do_load_use_stall = (IR_DX[31:26] === LW | IR_DX[31:26] === LB | IR_DX[31:26] === LBU) & ((i_data_out[25:21] === rd_DX) | ((i_data_out[20:16] === rd_DX) & (i_data_out[31:26] !== SW | i_data_out[31:26] !== SB )));
 assign stall = do_load_use_stall;
   
 always @(posedge clock) begin

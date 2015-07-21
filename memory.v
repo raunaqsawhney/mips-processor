@@ -31,20 +31,26 @@ reg [31:0] data_to_write;
 always @(posedge clock)
 begin : WRITE
 	if (!rw && enable) begin
+
 		if (do_wm_bypass == 1) begin
 			data_to_write = wm_bypass;
 		end else begin
 			data_to_write = data_in;
 		end
 
-		if (access_size == 2'b00) begin
-			//write_total_words = 1;
-			
+		if (access_size == 2'b00) begin			
 			busy = 1;
-			mem[address - base_addr + 3] <= data_to_write[7:0];
-			mem[address - base_addr + 2] <= data_to_write[15:8];
-			mem[address - base_addr + 1] <= data_to_write[23:16];
-			mem[address - base_addr + 0] <= data_to_write[31:24];
+			case (dm_byte)
+				1'b0: begin
+					mem[address - base_addr + 3] <= data_to_write[7:0];
+					mem[address - base_addr + 2] <= data_to_write[15:8];
+					mem[address - base_addr + 1] <= data_to_write[23:16];
+					mem[address - base_addr + 0] <= data_to_write[31:24];
+				end
+				1'b1: begin
+					mem[address] <= data_to_write[7:0];
+				end
+			endcase
 		end
 	end
 end
@@ -54,25 +60,19 @@ begin : READ
 	if (rw && enable) begin
 		if (access_size == 2'b00) begin
 			busy = 1;
-			data_out[7:0] 	<= mem[address - base_addr + 3];
-			data_out[15:8] 	<= mem[address - base_addr + 2];
-			data_out[23:16] <= mem[address - base_addr + 1];
-			data_out[31:24] <= mem[address - base_addr + 0];
+			case (dm_byte)
+				1'b0: begin
+					data_out[7:0] 	<= mem[address - base_addr + 3];
+					data_out[15:8] 	<= mem[address - base_addr + 2];
+					data_out[23:16] <= mem[address - base_addr + 1];
+					data_out[31:24] <= mem[address - base_addr + 0];
+				end
+				1'b1: begin
+					// TODO: Testing for working LBU
+					data_out <= { { 24{ 1'b0 } }, mem[address] };
+				end
+			endcase
 		end
-
-		/*
-		if (access_size == 2'b00 & dm_byte === 0) begin
-			busy = 1;
-			data_out[7:0] 	<= mem[address - base_addr + 3];
-			data_out[15:8] 	<= mem[address - base_addr + 2];
-			data_out[23:16] <= mem[address - base_addr + 1];
-			data_out[31:24] <= mem[address - base_addr + 0];
-		end else if (access_size == 2'b00 & dm_byte === 1) begin
-			busy = 1;
-			data_out <= { { 24{ mem[address - base_addr + 0] } }, mem[address - base_addr + 0] };
-		end
-		*/
-
 		if (do_branch === 1) begin
 			busy = 1;
 			data_out <= 32'h0;

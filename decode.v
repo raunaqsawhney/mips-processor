@@ -624,7 +624,7 @@ begin : DECODE
 				rwe = 1;
 				rdst = 0;
 				rwd = 1;
-				dm_byte = 1;
+				dm_byte = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -632,12 +632,12 @@ begin : DECODE
 			LUI: begin
 				br = 0;
 				jp = 0;
-				aluinb = 0;
+				aluinb = 1;
 				aluop = LUI_OP;
 				dmwe = 0;
 				rwe = 1;
 				rdst = 0;
-				rwd = 1;	
+				rwd = 0;
 				dm_byte = 0;
 
 				s1 = 5'h0;

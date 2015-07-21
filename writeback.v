@@ -2,6 +2,8 @@ module writeback(o, d, dataout, insn, br, jp, aluinb, aluop, dmwe, rwe, rdst, rw
 
 parameter JAL_OP    	= 6'b100000;
 parameter JALR_OP	= 6'b010001;
+parameter LB_OP		= 6'b010101;
+parameter LBU_OP	= 6'b011000;
 
 // Input Ports
 input wire [31:0] o; //Data Out of ALU (not a mem operation)
@@ -30,7 +32,7 @@ begin : WRITEBACK
 	// Determine if the data to be written back is from DMEM or ALU
 	case (rwd)
 		1'b0: dataout <= o; // ALU operation (output data from ALU to REGFILE)
-		1'b1: dataout <= d; // DMEM operation (output data from DMEM to REGFILE)
+		1'b1: dataout <= d;
 	endcase
 	
 	// Determine if the destination register is Rt or Rd
@@ -39,9 +41,15 @@ begin : WRITEBACK
 		1'b1: insn_to_d <= insn[15:11]; //rd
 	endcase
 
-	// In the SPECIAL case of JAL and JALR insns, the return address register rA (r31)
-	// should be written be value PC + 8
+	if (aluop == LB_OP) begin
+		dataout <= { { 24{ d[31] } }, d[31:24] };
+	end
+	//if (aluop == LBU_OP) begin
+//		dataout <= { { 24{ 1'b0 } }, d[31:24] };
+//	end
 	if (aluop == JAL_OP || aluop == JALR_OP) begin
+		// In the SPECIAL case of JAL and JALR insns, the return address register rA (r31)
+		// should be written be value PC + 8
 		insn_to_d <= 5'h1F;	//rA (r31 in REGFILE), dataout should be PC + 8 from E-Stage
 		dataout <= o;
 	end
