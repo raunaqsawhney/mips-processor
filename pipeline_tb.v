@@ -1,6 +1,6 @@
 module pipeline_tb;
 
-parameter filename 	= "DivDivDiv.x";
+parameter filename 	= "Swap.x";
 
 parameter base_addr 	= 32'h80020000;
 
@@ -306,11 +306,11 @@ assign rd_MW = (rdst_MW) ? IR_MW[15:11] : IR_MW[20:16];
 
 // Perform MX Bypass
 assign do_mx_bypass_a = rwe_XM & (IR_DX[25:21] == rd_XM);		
-assign do_mx_bypass_b = rwe_XM & rdst_DX & (IR_DX[20:16] == rd_XM); 	
+assign do_mx_bypass_b = rwe_XM & (rdst_DX | aluop_DX === DIV_OP || aluop_DX === MULT_OP) & (IR_DX[20:16] == rd_XM); 	
 
 // Perform WX Bypass
 assign do_wx_bypass_a = rwe_MW & (IR_DX[25:21] == rd_MW) & ~do_mx_bypass_a;		
-assign do_wx_bypass_b = rwe_MW & rdst_DX & (IR_DX[20:16] == rd_MW) & ~do_mx_bypass_b;
+assign do_wx_bypass_b = rwe_MW &  (rdst_DX | aluop_DX === DIV_OP || aluop_DX === MULT_OP)& (IR_DX[20:16] == rd_MW) & ~do_mx_bypass_b;
 
 // Perform WM Bypass
 assign do_wm_bypass = rwe_MW & dmwe_XM & (IR_XM[20:16] == rd_MW);

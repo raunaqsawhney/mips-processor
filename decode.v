@@ -266,7 +266,6 @@ begin : DECODE
 				aluop = DIV_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 1;
 				dm_byte = 0;
 
 				s1 = insn[25:21];	
@@ -279,7 +278,6 @@ begin : DECODE
 				aluop = DIV_OP;
 				dmwe = 0;
 				rwe = 0;
-				rdst = 1;
 				dm_byte = 0;
 
 				s1 = insn[25:21];	
