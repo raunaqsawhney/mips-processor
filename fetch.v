@@ -62,7 +62,7 @@ begin
 			case(do_branch)
 				1'b0: begin
 					pc <= pc;
-					pc_out <= 32'h0;
+					pc_out <= pc;
 				end
 				1'b1: begin 
 					pc <= pc_effective;

@@ -1,6 +1,6 @@
 module pipeline_tb;
 
-parameter filename 	= "SimpleAdd.x";
+parameter filename 	= "DivDivDiv.x";
 
 parameter base_addr 	= 32'h80020000;
 
@@ -16,6 +16,8 @@ parameter MULT_OP	= 6'b000010;
 parameter DIV_OP	= 6'b000011;
 parameter MFHI_OP	= 6'b000100;
 parameter MFLO_OP 	= 6'b000101;
+parameter J_OP 		= 6'b011111;
+parameter JAL_OP    	= 6'b100000;
 
 // File IO 
 integer file;
@@ -305,15 +307,15 @@ assign rd_XM = (rdst_XM) ? IR_XM[15:11] : IR_XM[20:16];
 assign rd_MW = (rdst_MW) ? IR_MW[15:11] : IR_MW[20:16];
 
 // Perform MX Bypass
-assign do_mx_bypass_a = rwe_XM & (IR_DX[25:21] == rd_XM);		
-assign do_mx_bypass_b = rwe_XM & (rdst_DX | aluop_DX === DIV_OP || aluop_DX === MULT_OP | br_DX) & (IR_DX[20:16] == rd_XM); 	
+assign do_mx_bypass_a = rwe_XM & (IR_DX[25:21] == rd_XM) & (aluop_DX !== J_OP | aluop_DX !== JAL_OP);		
+assign do_mx_bypass_b = rwe_XM & (rdst_DX | aluop_DX === DIV_OP || aluop_DX === MULT_OP | br_DX) & (IR_DX[20:16] == rd_XM) & (aluop_DX !== J_OP | aluop_DX !== JAL_OP); 	
 
 // Perform WX Bypass
-assign do_wx_bypass_a = rwe_MW & (IR_DX[25:21] == rd_MW) & ~do_mx_bypass_a;		
-assign do_wx_bypass_b = rwe_MW &  (rdst_DX | aluop_DX === DIV_OP || aluop_DX === MULT_OP | br_DX)& (IR_DX[20:16] == rd_MW) & ~do_mx_bypass_b;
+assign do_wx_bypass_a = rwe_MW & (IR_DX[25:21] == rd_MW) & ~do_mx_bypass_a & (aluop_DX !== J_OP | aluop_DX !== JAL_OP);		
+assign do_wx_bypass_b = rwe_MW &  (rdst_DX | aluop_DX === DIV_OP || aluop_DX === MULT_OP | br_DX)& (IR_DX[20:16] == rd_MW) & ~do_mx_bypass_b & (aluop_DX !== J_OP | aluop_DX !== JAL_OP);
 
 // Perform WM Bypass
-assign do_wm_bypass = rwe_MW & dmwe_XM & (IR_XM[20:16] == rd_MW);
+assign do_wm_bypass = rwe_MW & dmwe_XM & (IR_XM[20:16] == rd_MW) & (aluop_XM !== J_OP | aluop_XM !== JAL_OP);
 
 // Perform Load-Use Stall
 // TODO: Add support to detect LB and SB instructions
