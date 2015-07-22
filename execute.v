@@ -92,13 +92,16 @@ reg [31:0] lo;
 // Registers for holding rA and rB input values from Decode
 reg [31:0] rA_REG, rB_REG;
 reg [63:0] temp;
+wire [25:0] imm;
 
 assign rBOut = rB_REG;
 
 // Compute effective PC for Jumps or Branches and set signals
 // that are read in FETCH Module for PC
 assign pc_effective = (jp) ? jump_effective_address : (br ? branch_effective_address : 32'hx);
-assign do_branch = (branch_output & br) | jp;
+assign do_branch = (branch_output && br) | jp;
+
+assign imm = insn[25:0];
 
 always @ (posedge clock)
 begin
@@ -147,13 +150,13 @@ begin : EXECUTE
 		ADD_OP: begin
 			case (aluinb)
 				1'b0: aluOut = rA_REG + rB_REG;
-				1'b1: aluOut = rA_REG + { { 16{ insn[15] } }, insn[15:0] };
+				1'b1: aluOut = rA_REG + { { 16{ imm[15] } }, imm[15:0] };
 			endcase
 		end
 		SUB_OP: begin
 			case (aluinb)
 				1'b0: aluOut = rA_REG - rB_REG;
-				1'b1: aluOut = rA_REG - { { 16{ insn[15] } }, insn[15:0] };
+				1'b1: aluOut = rA_REG - { { 16{ imm[15] } }, imm[15:0] };
 			endcase
 		end
 		MUL_PSEUDO_OP: begin
@@ -176,7 +179,7 @@ begin : EXECUTE
 		SLT_OP: begin
 			case (aluinb)
 				1'b0: aluOut = (rA_REG < rB_REG) ? 32'h1 : 32'h0;
-				1'b1: aluOut = (rA_REG < insn[15:0]) ? 32'h1 : 32'h0;
+				1'b1: aluOut = (rA_REG < imm[15:0]) ? 32'h1 : 32'h0;
 			endcase
 		end
 		SLL_OP: begin
@@ -200,29 +203,29 @@ begin : EXECUTE
 		AND_OP: begin
 			case (aluinb)
 				1'b0: aluOut = rA_REG & rB_REG;
-				1'b1: aluOut = rA_REG & { { 16{ insn[15] } }, insn[15:0] };
+				1'b1: aluOut = rA_REG & { { 16{ imm[15] } }, imm[15:0] };
 			endcase
 		end
 		OR_OP: begin
 			case (aluinb)
 				1'b0: aluOut = rA_REG | rB_REG;
-				1'b1: aluOut = rA_REG | { { 16{ insn[15] } }, insn[15:0] };
+				1'b1: aluOut = rA_REG | { { 16{ imm[15] } }, imm[15:0] };
 			endcase
 		end
 		XOR_OP: begin
 			case (aluinb)
 				1'b0: aluOut = rA_REG ^ rB_REG;
-				1'b1: aluOut = rA_REG ^ { { 16{ insn[15] } }, insn[15:0] };
+				1'b1: aluOut = rA_REG ^ { { 16{ imm[15] } }, imm[15:0] };
 			endcase
 		end
 		NOR_OP: begin
 			aluOut = ~(rA_REG | rB_REG);
 		end
 		J_OP: begin
-			jump_effective_address = {pc[31:28], insn[25:0], 2'b00};
+			jump_effective_address = {pc[31:28], imm[25:0], 2'b00};
 		end
 		JAL_OP: begin
-			jump_effective_address = {pc[31:28], insn[25:0], 2'b00};
+			jump_effective_address = {pc[31:28], imm[25:0], 2'b00};
 			aluOut = pc + 32'h8;
 		end
 		JALR_OP: begin
@@ -233,28 +236,28 @@ begin : EXECUTE
 			jump_effective_address = rA_REG;
 		end
 		LW_OP: begin
-			aluOut = rA_REG + { { 16{ insn[15] } }, insn[15:0] };
+			aluOut = rA_REG + { { 16{ imm[15] } }, imm[15:0] };
 		end
 		LB_OP: begin
-			aluOut = rA_REG + { { 16{ insn[15] } }, insn[15:0] };
+			aluOut = rA_REG + { { 16{ imm[15] } }, imm[15:0] };
 			//TODO: modify DM Access Size to allow BYTE access instead of WORD
 		end
 		LUI_OP: begin
-			aluOut = insn[15:0] << 16;
+			aluOut = imm[15:0] << 16;
 		end
 		SW_OP: begin
-			aluOut = rA_REG + { { 16{ insn[15] } }, insn[15:0] };
+			aluOut = rA_REG + { { 16{ imm[15] } }, imm[15:0] };
 		end
 		SB_OP: begin
 			// Computes address to store BYTE of data in DMEM
-			aluOut = rA_REG + { { 16{ insn[15] } }, insn[15:0] };
+			aluOut = rA_REG + { { 16{ imm[15] } }, imm[15:0] };
 		end
 		LBU_OP: begin
-			aluOut = rA_REG + { { 16{ insn[15] } }, insn[15:0] };
+			aluOut = rA_REG + { { 16{ imm[15] } }, imm[15:0] };
 		end
 		BEQ_OP: begin
 			if (rA_REG == rB_REG) begin
-				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
+				branch_effective_address = pc + {{14{imm[15]}}, imm[15:0], 2'b00} + 32'h4;
 				branch_output = 1;           	
 			end else begin
 				branch_output = 0;
@@ -262,7 +265,7 @@ begin : EXECUTE
 		end
 		BNE_OP: begin
 			if (rA_REG != rB_REG) begin
-				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
+				branch_effective_address = pc + {{14{imm[15]}}, imm[15:0], 2'b00} + 32'h4;
 				branch_output = 1;
 			end else begin
 				branch_output = 0;
@@ -270,7 +273,7 @@ begin : EXECUTE
 		end
 		BGTZ_OP: begin
 			if (rA_REG > 32'h0) begin
-				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
+				branch_effective_address = pc + {{14{imm[15]}}, imm[15:0], 2'b00} + 32'h4;
 				branch_output = 1;
 			end else begin
 				branch_output = 0;
@@ -278,7 +281,7 @@ begin : EXECUTE
 		end
 		BLEZ_OP: begin
 			if (rA_REG <= 32'h0) begin
-				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
+				branch_effective_address = pc + {{14{imm[15]}}, imm[15:0], 2'b00} + 32'h4;
 				branch_output = 1;
 			end else begin
 				branch_output = 0;
@@ -286,7 +289,7 @@ begin : EXECUTE
 		end
 		BLTZ_OP: begin
 			if (rA_REG < 32'h0) begin
-				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
+				branch_effective_address = pc + {{14{imm[15]}}, imm[15:0], 2'b00} + 32'h4;
 				branch_output = 1;
 			end else begin
 				branch_output = 0;
@@ -294,7 +297,7 @@ begin : EXECUTE
 		end
 		BGEZ_OP: begin
 			if (rA_REG >= 32'h0) begin
-				branch_effective_address = pc + {{14{insn[15]}}, insn[15:0], 2'b00};
+				branch_effective_address = pc + {{14{imm[15]}}, imm[15:0], 2'b00} + 32'h4;
 				branch_output = 1;
 			end else begin
 				branch_output = 0;
