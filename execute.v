@@ -1,8 +1,7 @@
 module execute (clock, pc, rA, rB, insn, aluOut, rBOut, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, dm_byte, dm_half, pc_effective, do_branch, mx_bypass, do_mx_bypass_a, wx_bypass, do_wx_bypass_a, mx_bypass_b, do_mx_bypass_b, wx_bypass_b, do_wx_bypass_b);
 
 /****************ALUOPS******************/
-// These are used for the ALU inside
-// Execute module
+// Used for the ALU inside EXECUTE
 parameter ADD_OP 		= 6'b000000;
 parameter SUB_OP		= 6'b000001;
 parameter MULT_OP		= 6'b000010;

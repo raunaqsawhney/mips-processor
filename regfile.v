@@ -10,6 +10,7 @@ input wire rwe;
 output [31:0] rs;
 output [31:0] rt;
 
+// Initialize a REGISTER FILE 
 reg [31:0] REGFILE [31:0];
 
 //Combinationally output rs and rt from Register File

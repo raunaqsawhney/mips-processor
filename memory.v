@@ -30,8 +30,13 @@ begin : WRITE
 		end else begin
 			data_to_write = data_in;
 		end
-
-		if (access_size == 2'b00) begin			
+        
+        // dm_byte control signal is used to determine if the instruction
+        // writing to memory has a byte operation
+		// dm_half control signal is used to determine if the instruction
+        // writing to memory has a half word operation
+        // Otherwise, the normal word operation is done
+        if (access_size == 2'b00) begin			
 			busy = 1;
 			if (dm_byte === 1 & dm_half === 0) begin
 				mem[address - base_addr + 0] <= data_to_write[7:0];

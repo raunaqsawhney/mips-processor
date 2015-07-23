@@ -57,7 +57,6 @@ begin : WRITEBACK
 
 	// Output control signal to control the rwe port of Register File inside DECODE module
 	rwe_wb <= rwe;
-
 end
 
 endmodule

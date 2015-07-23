@@ -1,7 +1,12 @@
 module pipeline_tb;
 
+// IMPORTANT: use the filename parameter to
+// set the filename of the hex dump that is 
+// used to store the instructions of the 
+// program
 parameter filename 	= "fact.x";
 
+// Set the starting address of the memories
 parameter base_addr = 32'h80020000;
 
 // LOAD/STORE Instruction OPCODE
@@ -277,6 +282,7 @@ initial begin
 		IM.mem[count + 2] = read_data[15:8];
 		IM.mem[count + 3] = read_data[7:0];
 
+        // Fill DATA MEMORY with INSTRUCTIONS
 		DM.mem[count + 0] = read_data[31:24];
 		DM.mem[count + 1] = read_data[23:16];
 		DM.mem[count + 2] = read_data[15:8];

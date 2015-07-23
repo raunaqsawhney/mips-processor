@@ -111,8 +111,8 @@ parameter LHU_OP		= 6'b100101;
 
 // Input Ports
 input clock;
-input wire [31:0] pc;
-input wire [31:0] insn;
+input wire [31:0] pc;       // Input pc from DECODE
+input wire [31:0] insn;     // Input insn from DECODE
 input wire [31:0] rd;		// Input rd of REGFILE (wired to R0 module)
 input wire [4:0] d;			// Input d of REGFILE (wired to R0 module)
 input wire rwe_wb;
