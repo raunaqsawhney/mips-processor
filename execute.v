@@ -233,7 +233,7 @@ begin : EXECUTE
         end
         JALR_OP: begin
             jump_effective_address = rA_REG;
-            aluOut = pc + 32'h4;
+            aluOut = pc + 32'h8;
         end
         JR_OP: begin
             jump_effective_address = rA_REG;
