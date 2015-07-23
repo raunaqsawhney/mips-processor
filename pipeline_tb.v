@@ -4,26 +4,26 @@ module pipeline_tb;
 // set the filename of the hex dump that is 
 // used to store the instructions of the 
 // program
-parameter filename 	= "fact.x";
+parameter filename  = "fact.x";
 
 // Set the starting address of the memories
 parameter base_addr = 32'h80020000;
 
 // LOAD/STORE Instruction OPCODE
-parameter LW		= 6'b100011; 
-parameter SW		= 6'b101011; 
-parameter LB		= 6'b100000; 
-parameter LUI   	= 6'b001111; 
-parameter SB		= 6'b101000; 
-parameter LBU		= 6'b100100; 
+parameter LW        = 6'b100011; 
+parameter SW        = 6'b101011; 
+parameter LB        = 6'b100000; 
+parameter LUI       = 6'b001111; 
+parameter SB        = 6'b101000; 
+parameter LBU       = 6'b100100; 
 
 // MISC. ALU OP Values needed in Pipeline driver
-parameter NOP_OP	= 6'b100001;
-parameter MULT_OP	= 6'b000010;
-parameter DIV_OP	= 6'b000011;
-parameter MFHI_OP	= 6'b000100;
-parameter MFLO_OP 	= 6'b000101;
-parameter J_OP 		= 6'b011111;
+parameter NOP_OP    = 6'b100001;
+parameter MULT_OP   = 6'b000010;
+parameter DIV_OP    = 6'b000011;
+parameter MFHI_OP   = 6'b000100;
+parameter MFLO_OP   = 6'b000101;
+parameter J_OP      = 6'b011111;
 parameter JAL_OP    = 6'b100000;
 
 // The almighty clock
@@ -151,153 +151,153 @@ wire do_wx_bypass_b;
 wire do_load_use_stall;
 
 memory IM (
-	.clock(clock),
-	.address(i_address),
-	.data_in(i_data_in),
-	.access_size(i_access_size),
-	.rw(i_rw),
-	.enable(i_mem_enable),
-	.busy(i_busy),
-	.data_out(i_data_out),
-	.dm_byte(im_byte),
-	.dm_half(im_half),
-	.wm_bypass(i_wm_bypass),
-	.do_wm_bypass(i_do_wm_bypass),
-	.do_branch(do_branch)
+    .clock(clock),
+    .address(i_address),
+    .data_in(i_data_in),
+    .access_size(i_access_size),
+    .rw(i_rw),
+    .enable(i_mem_enable),
+    .busy(i_busy),
+    .data_out(i_data_out),
+    .dm_byte(im_byte),
+    .dm_half(im_half),
+    .wm_bypass(i_wm_bypass),
+    .do_wm_bypass(i_do_wm_bypass),
+    .do_branch(do_branch)
 );
 
 fetch #(.base_addr(base_addr)) F0 (
-	.clock(clock),
-	.pc_out(pc_FD),
-	.rw(i_rw),
-	.stall(stall),
-	.address(i_address),
-	.access_size(i_access_size),
-	.i_mem_enable(i_mem_enable),
-	.pc_effective(pc_effective),
-	.do_branch(do_branch)
+    .clock(clock),
+    .pc_out(pc_FD),
+    .rw(i_rw),
+    .stall(stall),
+    .address(i_address),
+    .access_size(i_access_size),
+    .i_mem_enable(i_mem_enable),
+    .pc_effective(pc_effective),
+    .do_branch(do_branch)
 );
 
 decode D0 (
-	.clock(clock),
-	.pc(pc_FD),
-	.insn(i_data_out),
-	.rA(rA),
-	.rB(rB),
-	.br(br),
-	.jp(jp),
-	.aluinb(aluinb),
-	.aluop(aluop),
-	.dmwe(dmwe),
-	.rwe(rwe),
-	.rdst(rdst),
-	.rwd(rwd),
-	.dm_byte(dm_byte),
-	.dm_half(dm_half),
-	.rd(dataout),
-	.d(insn_to_d),
-	.rwe_wb(rwe_wb)
+    .clock(clock),
+    .pc(pc_FD),
+    .insn(i_data_out),
+    .rA(rA),
+    .rB(rB),
+    .br(br),
+    .jp(jp),
+    .aluinb(aluinb),
+    .aluop(aluop),
+    .dmwe(dmwe),
+    .rwe(rwe),
+    .rdst(rdst),
+    .rwd(rwd),
+    .dm_byte(dm_byte),
+    .dm_half(dm_half),
+    .rd(dataout),
+    .d(insn_to_d),
+    .rwe_wb(rwe_wb)
 );
 
 execute E0 (
-	.clock(clock),
-	.pc(pc_DX),
-	.rA(rA_DX),
-	.rB(rB_DX),
-	.insn(IR_DX),
-	.br(br_DX),
-	.jp(jp_DX),
-	.aluinb(aluinb_DX),
-	.aluop(aluop_DX),
-	.dmwe(dmwe_DX),
-	.rwe(rwe_DX),
-	.rdst(rdst_DX),
-	.rwd(rwd_DX),
-	.dm_byte(dm_byte_DX),
-	.dm_half(dm_half_DX),
-	.aluOut(aluOut),
-	.rBOut(rBOut),
-	.pc_effective(pc_effective),
-	.do_branch(do_branch),
-	.mx_bypass(aluOut_XM),
-	.do_mx_bypass_a(do_mx_bypass_a),
-	.wx_bypass(dataout),
-	.do_wx_bypass_a(do_wx_bypass_a),
-	.mx_bypass_b(aluOut_XM),
-	.do_mx_bypass_b(do_mx_bypass_b),
-	.wx_bypass_b(dataout),
-	.do_wx_bypass_b(do_wx_bypass_b)
+    .clock(clock),
+    .pc(pc_DX),
+    .rA(rA_DX),
+    .rB(rB_DX),
+    .insn(IR_DX),
+    .br(br_DX),
+    .jp(jp_DX),
+    .aluinb(aluinb_DX),
+    .aluop(aluop_DX),
+    .dmwe(dmwe_DX),
+    .rwe(rwe_DX),
+    .rdst(rdst_DX),
+    .rwd(rwd_DX),
+    .dm_byte(dm_byte_DX),
+    .dm_half(dm_half_DX),
+    .aluOut(aluOut),
+    .rBOut(rBOut),
+    .pc_effective(pc_effective),
+    .do_branch(do_branch),
+    .mx_bypass(aluOut_XM),
+    .do_mx_bypass_a(do_mx_bypass_a),
+    .wx_bypass(dataout),
+    .do_wx_bypass_a(do_wx_bypass_a),
+    .mx_bypass_b(aluOut_XM),
+    .do_mx_bypass_b(do_mx_bypass_b),
+    .wx_bypass_b(dataout),
+    .do_wx_bypass_b(do_wx_bypass_b)
 );
 
 memory DM (
-	.clock(clock),
-	.address(aluOut_XM),
-	.data_in(rBOut_XM),
-	.access_size(d_access_size),
-	.rw(dmwe_XM_inverted),	// Set DMEM RW (DMWE) to the dmwe control signal in XM Registers
-	.enable(d_mem_enable),
-	.busy(d_busy),
-	.data_out(d_data_out),
-	.dm_byte(dm_byte_XM),
-	.dm_half(dm_half_XM),
-	.wm_bypass(dataout),
-	.do_wm_bypass(do_wm_bypass),
-	.do_branch(do_branch_dm)
+    .clock(clock),
+    .address(aluOut_XM),
+    .data_in(rBOut_XM),
+    .access_size(d_access_size),
+    .rw(dmwe_XM_inverted),  // Set DMEM RW (DMWE) to the dmwe control signal in XM Registers
+    .enable(d_mem_enable),
+    .busy(d_busy),
+    .data_out(d_data_out),
+    .dm_byte(dm_byte_XM),
+    .dm_half(dm_half_XM),
+    .wm_bypass(dataout),
+    .do_wm_bypass(do_wm_bypass),
+    .do_branch(do_branch_dm)
 );
 
 writeback W0 (
-	.o(o_MW),
-	.d(d_data_out),
-	.dataout(dataout),
-	.insn(IR_MW),
-	.br(br_MW),
-	.jp(jp_MW),
-	.aluinb(aluinb_MW),
-	.aluop(aluop_MW),
-	.dmwe(dmwe_MW),
-	.rwe(rwe_MW),
-	.rdst(rdst_MW),
-	.rwd(rwd_MW),
-	.dm_byte(dm_byte_MW),
-	.dm_half(dm_half_MW),
-	.insn_to_d(insn_to_d),
-	.rwe_wb(rwe_wb)
+    .o(o_MW),
+    .d(d_data_out),
+    .dataout(dataout),
+    .insn(IR_MW),
+    .br(br_MW),
+    .jp(jp_MW),
+    .aluinb(aluinb_MW),
+    .aluop(aluop_MW),
+    .dmwe(dmwe_MW),
+    .rwe(rwe_MW),
+    .rdst(rdst_MW),
+    .rwd(rwd_MW),
+    .dm_byte(dm_byte_MW),
+    .dm_half(dm_half_MW),
+    .insn_to_d(insn_to_d),
+    .rwe_wb(rwe_wb)
 );
 
 initial begin
-	clock = 1;
-	count = 0;
-	words_read = 0;
+    clock = 1;
+    count = 0;
+    words_read = 0;
 
-	F0.pc = base_addr - 32'h4;
+    F0.pc = base_addr - 32'h4;
 
-	// Read input file
-	file = $fopen(filename, "r");
-	while($feof(file) == 0) begin
-		scan_file = $fscanf(file, "%x", read_data);
-		
-		// Fill INSTRUCTION MEMORY
-		IM.mem[count + 0] = read_data[31:24];
-		IM.mem[count + 1] = read_data[23:16];
-		IM.mem[count + 2] = read_data[15:8];
-		IM.mem[count + 3] = read_data[7:0];
+    // Read input file
+    file = $fopen(filename, "r");
+    while($feof(file) == 0) begin
+        scan_file = $fscanf(file, "%x", read_data);
+        
+        // Fill INSTRUCTION MEMORY
+        IM.mem[count + 0] = read_data[31:24];
+        IM.mem[count + 1] = read_data[23:16];
+        IM.mem[count + 2] = read_data[15:8];
+        IM.mem[count + 3] = read_data[7:0];
 
         // Fill DATA MEMORY with INSTRUCTIONS
-		DM.mem[count + 0] = read_data[31:24];
-		DM.mem[count + 1] = read_data[23:16];
-		DM.mem[count + 2] = read_data[15:8];
-		DM.mem[count + 3] = read_data[7:0];
+        DM.mem[count + 0] = read_data[31:24];
+        DM.mem[count + 1] = read_data[23:16];
+        DM.mem[count + 2] = read_data[15:8];
+        DM.mem[count + 3] = read_data[7:0];
 
-		count = count + 4;
-	end
-	
-	// Initialize REGFILE
-	// Set all GPRs to ZERO
-	for (i = 0; i < 32; i = i + 1) begin
-		D0.R0.REGFILE[i] = 32'b0;
-	end
+        count = count + 4;
+    end
+    
+    // Initialize REGFILE
+    // Set all GPRs to ZERO
+    for (i = 0; i < 32; i = i + 1) begin
+        D0.R0.REGFILE[i] = 32'b0;
+    end
 
-	// Set SP (r29) to last valid address in valid memory region
+    // Set SP (r29) to last valid address in valid memory region
     D0.R0.REGFILE[29] = base_addr + IM.memory_depth;
 
     // Set RA return address (r31) to a known value
@@ -322,16 +322,16 @@ assign im_half = 1'b0;
 assign dmwe_XM_inverted = ~dmwe_XM;
 
 // Determine destination registers for Bypassing and Stalls
-assign rd_DX = (rdst_DX) ? IR_DX[15:11] : IR_DX[20:16];	// Destination register in DX Pipeline Register
+assign rd_DX = (rdst_DX) ? IR_DX[15:11] : IR_DX[20:16]; // Destination register in DX Pipeline Register
 assign rd_XM = (rdst_XM) ? IR_XM[15:11] : IR_XM[20:16]; // Destination register in XM Pipeline Register
 assign rd_MW = (rdst_MW) ? IR_MW[15:11] : IR_MW[20:16]; // Destination register in MW Pipeline Register
 
 // Perform MX Bypass
-assign do_mx_bypass_a = rwe_XM & (IR_DX[25:21] == rd_XM);		
-assign do_mx_bypass_b = rwe_XM & (rdst_DX | aluop_DX === DIV_OP || aluop_DX === MULT_OP | br_DX) & (IR_DX[20:16] == rd_XM); 	
+assign do_mx_bypass_a = rwe_XM & (IR_DX[25:21] == rd_XM);       
+assign do_mx_bypass_b = rwe_XM & (rdst_DX | aluop_DX === DIV_OP || aluop_DX === MULT_OP | br_DX) & (IR_DX[20:16] == rd_XM);     
 
 // Perform WX Bypass
-assign do_wx_bypass_a = rwe_MW & (IR_DX[25:21] == rd_MW) & ~do_mx_bypass_a;		
+assign do_wx_bypass_a = rwe_MW & (IR_DX[25:21] == rd_MW) & ~do_mx_bypass_a;     
 assign do_wx_bypass_b = rwe_MW &  (rdst_DX | aluop_DX === DIV_OP || aluop_DX === MULT_OP | br_DX) & (IR_DX[20:16] == rd_MW) & ~do_mx_bypass_b;
 
 // Perform WM Bypass
@@ -342,61 +342,61 @@ assign do_load_use_stall =  (IR_DX[31:26] === LW | IR_DX[31:26] === LB | IR_DX[3
 assign stall = do_load_use_stall;
 
 always @(posedge clock) begin
-	
-	pc_DX	 	<= (stall | do_branch === 1) ? 32'h0 : pc_FD;
-	IR_DX 		<= (stall | do_branch === 1) ? 32'h0 : i_data_out;
-	rA_DX 		<= (stall | do_branch === 1) ? 5'h0 : rA;
-	rB_DX 		<= (stall | do_branch === 1) ? 5'h0 : rB;
-	br_DX 		<= (stall | do_branch === 1) ? 1'h0 : br;
-	jp_DX 		<= (stall | do_branch === 1) ? 1'h0 : jp;
-	aluinb_DX 	<= (stall | do_branch === 1) ? 1'h0 : aluinb;
-	aluop_DX  	<= (stall | do_branch === 1) ? NOP_OP : aluop;
-	dmwe_DX   	<= (stall | do_branch === 1) ? 1'h0 : dmwe;
-	rwe_DX    	<= (stall | do_branch === 1) ? 1'h0 : rwe;
-	rdst_DX   	<= (stall | do_branch === 1) ? 1'h0 : rdst;
-	rwd_DX 	  	<= (stall | do_branch === 1) ? 1'h0 : rwd;
-	dm_byte_DX	<= (stall | do_branch === 1) ? 1'h0 : dm_byte;
-	dm_half_DX	<= (stall | do_branch === 1) ? 1'h0 : dm_half;
+    
+    pc_DX       <= (stall | do_branch === 1) ? 32'h0 : pc_FD;
+    IR_DX       <= (stall | do_branch === 1) ? 32'h0 : i_data_out;
+    rA_DX       <= (stall | do_branch === 1) ? 5'h0 : rA;
+    rB_DX       <= (stall | do_branch === 1) ? 5'h0 : rB;
+    br_DX       <= (stall | do_branch === 1) ? 1'h0 : br;
+    jp_DX       <= (stall | do_branch === 1) ? 1'h0 : jp;
+    aluinb_DX   <= (stall | do_branch === 1) ? 1'h0 : aluinb;
+    aluop_DX    <= (stall | do_branch === 1) ? NOP_OP : aluop;
+    dmwe_DX     <= (stall | do_branch === 1) ? 1'h0 : dmwe;
+    rwe_DX      <= (stall | do_branch === 1) ? 1'h0 : rwe;
+    rdst_DX     <= (stall | do_branch === 1) ? 1'h0 : rdst;
+    rwd_DX      <= (stall | do_branch === 1) ? 1'h0 : rwd;
+    dm_byte_DX  <= (stall | do_branch === 1) ? 1'h0 : dm_byte;
+    dm_half_DX  <= (stall | do_branch === 1) ? 1'h0 : dm_half;
 
-	pc_XM		<= pc_DX;
-	IR_XM		<= IR_DX;
-	aluOut_XM 	<= aluOut;
-	rBOut_XM 	<= rBOut;
-	br_XM 		<= br_DX;
-	jp_XM 		<= jp_DX;
-	aluinb_XM 	<= aluinb_DX;
-	aluop_XM 	<= aluop_DX;
-	dmwe_XM 	<= dmwe_DX;
-	rwe_XM 		<= rwe_DX;
-	rdst_XM 	<= rdst_DX;
-	rwd_XM 		<= rwd_DX;
-	dm_byte_XM	<= dm_byte_DX;
-	dm_half_XM  <= dm_half_DX;
+    pc_XM       <= pc_DX;
+    IR_XM       <= IR_DX;
+    aluOut_XM   <= aluOut;
+    rBOut_XM    <= rBOut;
+    br_XM       <= br_DX;
+    jp_XM       <= jp_DX;
+    aluinb_XM   <= aluinb_DX;
+    aluop_XM    <= aluop_DX;
+    dmwe_XM     <= dmwe_DX;
+    rwe_XM      <= rwe_DX;
+    rdst_XM     <= rdst_DX;
+    rwd_XM      <= rwd_DX;
+    dm_byte_XM  <= dm_byte_DX;
+    dm_half_XM  <= dm_half_DX;
 
-	pc_MW 		<= pc_XM;
-	IR_MW 		<= IR_XM;
-	o_MW 		<= aluOut_XM;
-	d_MW 		<= d_data_out;
-	br_MW 		<= br_XM;
-	jp_MW 		<= jp_XM;
-	aluinb_MW 	<= aluinb_XM;
-	aluop_MW 	<= aluop_XM;
-	dmwe_MW 	<= dmwe_XM;
-	rwe_MW 		<= rwe_XM;
-	rdst_MW 	<= rdst_XM;
-	rwd_MW 		<= rwd_XM;
-	dm_byte_MW	<= dm_byte_XM;
-	dm_half_MW  <= dm_half_XM;
+    pc_MW       <= pc_XM;
+    IR_MW       <= IR_XM;
+    o_MW        <= aluOut_XM;
+    d_MW        <= d_data_out;
+    br_MW       <= br_XM;
+    jp_MW       <= jp_XM;
+    aluinb_MW   <= aluinb_XM;
+    aluop_MW    <= aluop_XM;
+    dmwe_MW     <= dmwe_XM;
+    rwe_MW      <= rwe_XM;
+    rdst_MW     <= rdst_XM;
+    rwd_MW      <= rwd_XM;
+    dm_byte_MW  <= dm_byte_XM;
+    dm_half_MW  <= dm_half_XM;
 
-	// Debug Prints
-	$display("\n\nF/D: PC = %x | IR = %x", pc_FD, i_data_out);
-	$display("D/X: PC = %x | IR = %x", pc_DX, IR_DX);
-	$display("X/M: PC = %x | IR = %x", pc_XM, IR_XM);
-	$display("M/W: PC = %x | IR = %x", pc_MW, IR_MW);
+    // Debug Prints
+    $display("\n\nF/D: PC = %x | IR = %x", pc_FD, i_data_out);
+    $display("D/X: PC = %x | IR = %x", pc_DX, IR_DX);
+    $display("X/M: PC = %x | IR = %x", pc_XM, IR_XM);
+    $display("M/W: PC = %x | IR = %x", pc_MW, IR_MW);
 
 end
 
 always
-	#5 clock = ! clock;
+    #5 clock = ! clock;
 
 endmodule

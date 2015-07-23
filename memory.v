@@ -23,52 +23,52 @@ reg [7:0] mem[0:memory_depth];
 
 always @(posedge clock)
 begin : WRITE
-	if (!rw && enable) begin
+    if (!rw && enable) begin
 
-		if (do_wm_bypass == 1) begin
-			data_to_write = wm_bypass;
-		end else begin
-			data_to_write = data_in;
-		end
+        if (do_wm_bypass == 1) begin
+            data_to_write = wm_bypass;
+        end else begin
+            data_to_write = data_in;
+        end
         
         // dm_byte control signal is used to determine if the instruction
         // writing to memory has a byte operation
-		// dm_half control signal is used to determine if the instruction
+        // dm_half control signal is used to determine if the instruction
         // writing to memory has a half word operation
         // Otherwise, the normal word operation is done
-        if (access_size == 2'b00) begin			
-			busy = 1;
-			if (dm_byte === 1 & dm_half === 0) begin
-				mem[address - base_addr + 0] <= data_to_write[7:0];
-			end else if (dm_byte === 0 & dm_half === 1) begin
-				mem[address - base_addr + 0] <= data_to_write[7:0];
-				mem[address - base_addr + 1] <= data_to_write[15:8];
-			end else if (dm_byte === 0 & dm_half === 0) begin
-				mem[address - base_addr + 3] <= data_to_write[7:0];
-				mem[address - base_addr + 2] <= data_to_write[15:8];
-				mem[address - base_addr + 1] <= data_to_write[23:16];
-				mem[address - base_addr + 0] <= data_to_write[31:24];
-			end
-		end
-	end
+        if (access_size == 2'b00) begin         
+            busy = 1;
+            if (dm_byte === 1 & dm_half === 0) begin
+                mem[address - base_addr + 0] <= data_to_write[7:0];
+            end else if (dm_byte === 0 & dm_half === 1) begin
+                mem[address - base_addr + 0] <= data_to_write[7:0];
+                mem[address - base_addr + 1] <= data_to_write[15:8];
+            end else if (dm_byte === 0 & dm_half === 0) begin
+                mem[address - base_addr + 3] <= data_to_write[7:0];
+                mem[address - base_addr + 2] <= data_to_write[15:8];
+                mem[address - base_addr + 1] <= data_to_write[23:16];
+                mem[address - base_addr + 0] <= data_to_write[31:24];
+            end
+        end
+    end
 end
 
 always @(posedge clock)
 begin : READ
-	if (rw && enable) begin
-		if (access_size == 2'b00) begin
-			busy = 1;
-			data_out[7:0] 	<= mem[address - base_addr + 3];
-			data_out[15:8] 	<= mem[address - base_addr + 2];
-			data_out[23:16] <= mem[address - base_addr + 1];
-			data_out[31:24] <= mem[address - base_addr + 0];
-		end
+    if (rw && enable) begin
+        if (access_size == 2'b00) begin
+            busy = 1;
+            data_out[7:0]   <= mem[address - base_addr + 3];
+            data_out[15:8]  <= mem[address - base_addr + 2];
+            data_out[23:16] <= mem[address - base_addr + 1];
+            data_out[31:24] <= mem[address - base_addr + 0];
+        end
 
-		if (do_branch === 1) begin
-			busy = 1;
-			data_out <= 32'h0;
-		end
-	end
+        if (do_branch === 1) begin
+            busy = 1;
+            data_out <= 32'h0;
+        end
+    end
 end
 
 endmodule

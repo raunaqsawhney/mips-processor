@@ -20,9 +20,9 @@ assign rt = (s2 != 0) ? REGFILE[s2] : 0;
 // Write on the negative clock edge to the Register File
 always @(negedge clock)
 begin
-	if (rwe == 1) begin
-		REGFILE[d] <= rd;
-	end
+    if (rwe == 1) begin
+        REGFILE[d] <= rd;
+    end
 end
  
 endmodule
