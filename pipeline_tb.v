@@ -1,9 +1,10 @@
 module pipeline_tb;
 
-parameter filename 	= "DivDivDiv.x";
+parameter filename 	= "fact.x";
 
-parameter base_addr 	= 32'h80020000;
+parameter base_addr = 32'h80020000;
 
+// LOAD/STORE Instruction OPCODE
 parameter LW		= 6'b100011; 
 parameter SW		= 6'b101011; 
 parameter LB		= 6'b100000; 
@@ -11,28 +12,28 @@ parameter LUI   	= 6'b001111;
 parameter SB		= 6'b101000; 
 parameter LBU		= 6'b100100; 
 
+// MISC. ALU OP Values needed in Pipeline driver
 parameter NOP_OP	= 6'b100001;
 parameter MULT_OP	= 6'b000010;
 parameter DIV_OP	= 6'b000011;
 parameter MFHI_OP	= 6'b000100;
 parameter MFLO_OP 	= 6'b000101;
 parameter J_OP 		= 6'b011111;
-parameter JAL_OP    	= 6'b100000;
+parameter JAL_OP    = 6'b100000;
+
+// The almighty clock
+reg clock;
 
 // File IO 
 integer file;
 integer count;
+integer i;
 integer words_read;
 integer scan_file;
-
 reg[31:0] read_data;
 reg[31:0] data_read;
-wire stall;
-integer i;
 
-reg clock;
-
-//IMEM REGS
+//INSTRUCTION MEMORY Wires
 wire [31:0] i_address;
 wire [31:0] i_data_in;
 wire [1:0] i_access_size;
@@ -42,17 +43,19 @@ wire i_busy;
 wire i_do_wm_bypass;
 wire [31:0] i_wm_bypass;
 wire im_byte;
+wire im_half;
+wire stall;
 
-//DMEM REGS
+//DATA MEMORY Wires
 wire [31:0] d_address;
 wire [31:0] d_data_in;
-reg [1:0] d_access_size;
+wire [1:0] d_access_size;
 wire d_rw;
 wire d_mem_enable;
 wire d_busy;
 wire do_branch_dm;
 
-//FD Registers
+//FD Wires
 wire [31:0] pc_FD;
 wire [31:0] i_data_out;
 
@@ -70,6 +73,7 @@ reg rwe_DX;
 reg rdst_DX;
 reg rwd_DX;
 reg dm_byte_DX;
+reg dm_half_DX;
 
 //XM Registers
 reg [31:0] pc_XM;
@@ -85,6 +89,7 @@ reg rwe_XM;
 reg rdst_XM;
 reg rwd_XM;
 reg dm_byte_XM;
+reg dm_half_XM;
 
 //MW Registers
 reg [31:0] pc_MW;
@@ -100,8 +105,9 @@ reg rwe_MW;
 reg rdst_MW;
 reg rwd_MW;
 reg dm_byte_MW;
+reg dm_half_MW;
 
-// Wires from the DECODE Stage
+// Wires from DECODE Stage
 wire [31:0] rA;
 wire [31:0] rB;
 wire br;
@@ -113,6 +119,7 @@ wire rwe;
 wire rdst;
 wire rwd;
 wire dm_byte;
+wire dm_half;
 
 // Wires from EXECUTE Stage
 wire [31:0] aluOut;
@@ -121,7 +128,7 @@ wire dmwe_XM_inverted;
 wire [31:0] pc_effective;
 wire do_branch;
 
-//Data Wires (From MEMORY Stage)
+// Wires from DATA MEMORY Stage
 wire [31:0] d_data_out;
 
 //Wires from WRITEBACK Stage
@@ -148,6 +155,7 @@ memory IM (
 	.busy(i_busy),
 	.data_out(i_data_out),
 	.dm_byte(im_byte),
+	.dm_half(im_half),
 	.wm_bypass(i_wm_bypass),
 	.do_wm_bypass(i_do_wm_bypass),
 	.do_branch(do_branch)
@@ -180,6 +188,7 @@ decode D0 (
 	.rdst(rdst),
 	.rwd(rwd),
 	.dm_byte(dm_byte),
+	.dm_half(dm_half),
 	.rd(dataout),
 	.d(insn_to_d),
 	.rwe_wb(rwe_wb)
@@ -200,6 +209,7 @@ execute E0 (
 	.rdst(rdst_DX),
 	.rwd(rwd_DX),
 	.dm_byte(dm_byte_DX),
+	.dm_half(dm_half_DX),
 	.aluOut(aluOut),
 	.rBOut(rBOut),
 	.pc_effective(pc_effective),
@@ -224,6 +234,7 @@ memory DM (
 	.busy(d_busy),
 	.data_out(d_data_out),
 	.dm_byte(dm_byte_XM),
+	.dm_half(dm_half_XM),
 	.wm_bypass(dataout),
 	.do_wm_bypass(do_wm_bypass),
 	.do_branch(do_branch_dm)
@@ -243,10 +254,10 @@ writeback W0 (
 	.rdst(rdst_MW),
 	.rwd(rwd_MW),
 	.dm_byte(dm_byte_MW),
+	.dm_half(dm_half_MW),
 	.insn_to_d(insn_to_d),
 	.rwe_wb(rwe_wb)
 );
-
 
 initial begin
 	clock = 1;
@@ -255,11 +266,12 @@ initial begin
 
 	F0.pc = base_addr - 32'h4;
 
-	// Read input file and fill IMEM
+	// Read input file
 	file = $fopen(filename, "r");
 	while($feof(file) == 0) begin
 		scan_file = $fscanf(file, "%x", read_data);
 		
+		// Fill INSTRUCTION MEMORY
 		IM.mem[count + 0] = read_data[31:24];
 		IM.mem[count + 1] = read_data[23:16];
 		IM.mem[count + 2] = read_data[15:8];
@@ -274,53 +286,54 @@ initial begin
 	end
 	
 	// Initialize REGFILE
+	// Set all GPRs to ZERO
 	for (i = 0; i < 32; i = i + 1) begin
 		D0.R0.REGFILE[i] = 32'b0;
 	end
 
-	// Set SP (r29) to last valid address in Memory region
-    	D0.R0.REGFILE[29] = base_addr + IM.memory_depth;
+	// Set SP (r29) to last valid address in valid memory region
+    D0.R0.REGFILE[29] = base_addr + IM.memory_depth;
 
-    	// Set RA return address (r31) to a known value
-    	D0.R0.REGFILE[31] = 32'hdeadbeef; 
+    // Set RA return address (r31) to a known value
+    D0.R0.REGFILE[31] = 32'hdeadbeef; 
 
-	d_access_size = 2'b00;
 end
 
+// Enable the DATA MEMORY
 assign d_mem_enable = 1;
+assign d_access_size = 2'b00;
+
+// Disable the DATA MEMORY from doing any branching
+assign do_branch_dm = 1'b0;
 
 // IMEM Does not need wm bypass, set values accordingly
 assign i_wm_bypass = 32'h0;
 assign i_do_wm_bypass = 1'b0;
 assign im_byte = 1'b0;
-
-assign do_branch_dm = 1'b0;
+assign im_half = 1'b0;
 
 // Invert the DMWE control signal for enabling data memory for writes
 assign dmwe_XM_inverted = ~dmwe_XM;
 
-
-// LOOK AT THE BYPASS PATHS VERY CAREFULLY FOR CHECKVOWEL
-// Determine destination registers for Bypassing and Stall
-assign rd_DX = (rdst_DX) ? IR_DX[15:11] : IR_DX[20:16];
-assign rd_XM = (rdst_XM) ? IR_XM[15:11] : IR_XM[20:16];
-assign rd_MW = (rdst_MW) ? IR_MW[15:11] : IR_MW[20:16];
+// Determine destination registers for Bypassing and Stalls
+assign rd_DX = (rdst_DX) ? IR_DX[15:11] : IR_DX[20:16];	// Destination register in DX Pipeline Register
+assign rd_XM = (rdst_XM) ? IR_XM[15:11] : IR_XM[20:16]; // Destination register in XM Pipeline Register
+assign rd_MW = (rdst_MW) ? IR_MW[15:11] : IR_MW[20:16]; // Destination register in MW Pipeline Register
 
 // Perform MX Bypass
-assign do_mx_bypass_a = rwe_XM & (IR_DX[25:21] == rd_XM) & (aluop_DX !== J_OP | aluop_DX !== JAL_OP);		
-assign do_mx_bypass_b = rwe_XM & (rdst_DX | aluop_DX === DIV_OP || aluop_DX === MULT_OP | br_DX) & (IR_DX[20:16] == rd_XM) & (aluop_DX !== J_OP | aluop_DX !== JAL_OP); 	
+assign do_mx_bypass_a = rwe_XM & (IR_DX[25:21] == rd_XM);		
+assign do_mx_bypass_b = rwe_XM & (rdst_DX | aluop_DX === DIV_OP || aluop_DX === MULT_OP | br_DX) & (IR_DX[20:16] == rd_XM); 	
 
 // Perform WX Bypass
-assign do_wx_bypass_a = rwe_MW & (IR_DX[25:21] == rd_MW) & ~do_mx_bypass_a & (aluop_DX !== J_OP | aluop_DX !== JAL_OP);		
-assign do_wx_bypass_b = rwe_MW &  (rdst_DX | aluop_DX === DIV_OP || aluop_DX === MULT_OP | br_DX)& (IR_DX[20:16] == rd_MW) & ~do_mx_bypass_b & (aluop_DX !== J_OP | aluop_DX !== JAL_OP);
+assign do_wx_bypass_a = rwe_MW & (IR_DX[25:21] == rd_MW) & ~do_mx_bypass_a;		
+assign do_wx_bypass_b = rwe_MW &  (rdst_DX | aluop_DX === DIV_OP || aluop_DX === MULT_OP | br_DX) & (IR_DX[20:16] == rd_MW) & ~do_mx_bypass_b;
 
 // Perform WM Bypass
-assign do_wm_bypass = rwe_MW & dmwe_XM & (IR_XM[20:16] == rd_MW) & (aluop_XM !== J_OP | aluop_XM !== JAL_OP);
+assign do_wm_bypass = rwe_MW & dmwe_XM & (IR_XM[20:16] == rd_MW);
 
 // Perform Load-Use Stall
-// TODO: Add support to detect LB and SB instructions
+assign do_load_use_stall =  (IR_DX[31:26] === LW | IR_DX[31:26] === LB | IR_DX[31:26] === LBU) & ((i_data_out[25:21] === rd_DX) | ((i_data_out[20:16] === rd_DX)) & (i_data_out[31:26] !== SW & i_data_out[31:26] !== SB));
 assign stall = do_load_use_stall;
-assign do_load_use_stall =  (IR_DX[31:26] === LW) & ((i_data_out[25:21] === rd_DX) | ((i_data_out[20:16] === rd_DX)) & (i_data_out[31:26] !== SW));
 
 always @(posedge clock) begin
 	
@@ -337,6 +350,7 @@ always @(posedge clock) begin
 	rdst_DX   	<= (stall | do_branch === 1) ? 1'h0 : rdst;
 	rwd_DX 	  	<= (stall | do_branch === 1) ? 1'h0 : rwd;
 	dm_byte_DX	<= (stall | do_branch === 1) ? 1'h0 : dm_byte;
+	dm_half_DX	<= (stall | do_branch === 1) ? 1'h0 : dm_half;
 
 	pc_XM		<= pc_DX;
 	IR_XM		<= IR_DX;
@@ -351,6 +365,7 @@ always @(posedge clock) begin
 	rdst_XM 	<= rdst_DX;
 	rwd_XM 		<= rwd_DX;
 	dm_byte_XM	<= dm_byte_DX;
+	dm_half_XM  <= dm_half_DX;
 
 	pc_MW 		<= pc_XM;
 	IR_MW 		<= IR_XM;
@@ -365,6 +380,7 @@ always @(posedge clock) begin
 	rdst_MW 	<= rdst_XM;
 	rwd_MW 		<= rwd_XM;
 	dm_byte_MW	<= dm_byte_XM;
+	dm_half_MW  <= dm_half_XM;
 
 	// Debug Prints
 	$display("\n\nF/D: PC = %x | IR = %x", pc_FD, i_data_out);

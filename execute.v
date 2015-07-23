@@ -1,4 +1,4 @@
-module execute (clock, pc, rA, rB, insn, aluOut, rBOut, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, dm_byte, pc_effective, do_branch, mx_bypass, do_mx_bypass_a, wx_bypass, do_wx_bypass_a, mx_bypass_b, do_mx_bypass_b, wx_bypass_b, do_wx_bypass_b);
+module execute (clock, pc, rA, rB, insn, aluOut, rBOut, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, dm_byte, dm_half, pc_effective, do_branch, mx_bypass, do_mx_bypass_a, wx_bypass, do_wx_bypass_a, mx_bypass_b, do_mx_bypass_b, wx_bypass_b, do_wx_bypass_b);
 
 /****************ALUOPS******************/
 // These are used for the ALU inside
@@ -38,6 +38,9 @@ parameter J_OP 			= 6'b011111;
 parameter JAL_OP    	= 6'b100000;
 parameter NOP_OP		= 6'b100001;
 parameter MUL_PSEUDO_OP	= 6'b100010;
+parameter LH_OP			= 6'b100011;
+parameter SH_OP			= 6'b100100;
+parameter LHU_OP		= 6'b100101;
 /**************************************/
 
 // Input Ports
@@ -69,6 +72,7 @@ input wire rwe;
 input wire rdst;
 input wire rwd;
 input wire dm_byte;
+input wire dm_half;
 
 // Output Data Ports
 output reg [31:0] aluOut;
@@ -179,7 +183,7 @@ begin : EXECUTE
 		SLT_OP: begin
 			case (aluinb)
 				1'b0: aluOut = (rA_REG < rB_REG) ? 32'h1 : 32'h0;
-				1'b1: aluOut = (rA_REG < imm[15:0]) ? 32'h1 : 32'h0;
+				1'b1: aluOut = (rA_REG < { { 16{ imm[15] } }, imm[15:0] }) ? 32'h1 : 32'h0;
 			endcase
 		end
 		SLL_OP: begin
@@ -203,19 +207,19 @@ begin : EXECUTE
 		AND_OP: begin
 			case (aluinb)
 				1'b0: aluOut = rA_REG & rB_REG;
-				1'b1: aluOut = rA_REG & { { 16{ imm[15] } }, imm[15:0] };
+				1'b1: aluOut = rA_REG & { { 16{ 1'b0 } }, imm[15:0] };
 			endcase
 		end
 		OR_OP: begin
 			case (aluinb)
 				1'b0: aluOut = rA_REG | rB_REG;
-				1'b1: aluOut = rA_REG | { { 16{ imm[15] } }, imm[15:0] };
+				1'b1: aluOut = rA_REG | { { 16{ 1'b0 } }, imm[15:0] };
 			endcase
 		end
 		XOR_OP: begin
 			case (aluinb)
 				1'b0: aluOut = rA_REG ^ rB_REG;
-				1'b1: aluOut = rA_REG ^ { { 16{ imm[15] } }, imm[15:0] };
+				1'b1: aluOut = rA_REG ^ { { 16{ 1'b0 } }, imm[15:0] };
 			endcase
 		end
 		NOR_OP: begin
@@ -238,9 +242,11 @@ begin : EXECUTE
 		LW_OP: begin
 			aluOut = rA_REG + { { 16{ imm[15] } }, imm[15:0] };
 		end
+		LH_OP: begin
+			aluOut = rA_REG + { { 16{ imm[15] } }, imm[15:0] };
+		end
 		LB_OP: begin
 			aluOut = rA_REG + { { 16{ imm[15] } }, imm[15:0] };
-			//TODO: modify DM Access Size to allow BYTE access instead of WORD
 		end
 		LUI_OP: begin
 			aluOut = imm[15:0] << 16;
@@ -248,8 +254,10 @@ begin : EXECUTE
 		SW_OP: begin
 			aluOut = rA_REG + { { 16{ imm[15] } }, imm[15:0] };
 		end
+		SH_OP: begin
+			aluOut = rA_REG + { { 16{ imm[15] } }, imm[15:0] };
+		end
 		SB_OP: begin
-			// Computes address to store BYTE of data in DMEM
 			aluOut = rA_REG + { { 16{ imm[15] } }, imm[15:0] };
 		end
 		LBU_OP: begin

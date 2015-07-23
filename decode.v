@@ -1,4 +1,4 @@
-module decode(clock, pc, insn, rA, rB, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, dm_byte, rd, d, rwe_wb);
+module decode(clock, pc, insn, rA, rB, br, jp, aluinb, aluop, dmwe, rwe, rdst, rwd, dm_byte, dm_half, rd, d, rwe_wb);
 
 /****************OPCODES****************/
 // R-Type FUNC Codes
@@ -25,7 +25,7 @@ parameter OR			= 6'b100101;
 parameter XOR			= 6'b100110; 
 parameter NOR			= 6'b100111; 
 parameter JALR			= 6'b001001; 		
-parameter JR			= 6'b001000; 		
+parameter JR			= 6'b001000;
 
 // MUL R-TYPE Opcode
 parameter MUL_OP 		= 6'b011100; 	//MUL OPCODE
@@ -40,7 +40,10 @@ parameter ANDI  		= 6'b001100;
 parameter ORI			= 6'b001101; 
 parameter XORI  		= 6'b001110; 
 parameter LW			= 6'b100011; 
+parameter LH			= 6'b100001;
+parameter LHU			= 6'b100101;
 parameter SW			= 6'b101011; 
+parameter SH 			= 6'b101001;
 parameter LB			= 6'b100000; 
 parameter LUI   		= 6'b001111; 
 parameter SB			= 6'b101000; 
@@ -101,13 +104,16 @@ parameter J_OP 			= 6'b011111;
 parameter JAL_OP    	= 6'b100000;
 parameter NOP_OP		= 6'b100001;
 parameter MUL_PSEUDO_OP	= 6'b100010;
+parameter LH_OP			= 6'b100011;
+parameter SH_OP			= 6'b100100;
+parameter LHU_OP		= 6'b100101;
 /**************************************/
 
 // Input Ports
 input clock;
 input wire [31:0] pc;
 input wire [31:0] insn;
-input wire [31:0] rd;			// Input rd of REGFILE (wired to R0 module)
+input wire [31:0] rd;		// Input rd of REGFILE (wired to R0 module)
 input wire [4:0] d;			// Input d of REGFILE (wired to R0 module)
 input wire rwe_wb;
 
@@ -116,15 +122,16 @@ output [31:0] rA;			// Output rA of DECODE
 output [31:0] rB;			// Output rB of DECODE
 
 // Output Control Signals
-output reg br;				//branch
-output reg jp;				//Jump
-output reg aluinb;			//ALU B Input bridged straight across E-Stage to DMEM
-output reg [5:0] aluop;			//ALU OP Code (a subset of DECODE Opcodes)
-output reg dmwe;			//DM Write Enable
-output reg rwe;				//REGFILE Write Enable
-output reg rdst;			//d input to REGFILE (either rt or rd)
-output reg rwd;				//Write data from ALU or DMEM
-output reg dm_byte;			//Set on a data byte instruction
+output reg br;				// branch
+output reg jp;				// Jump
+output reg aluinb;			// ALU B Input bridged straight across E-Stage to DMEM
+output reg [5:0] aluop;		// ALU OP Code (a subset of DECODE Opcodes)
+output reg dmwe;			// DM Write Enable
+output reg rwe;				// REGFILE Write Enable
+output reg rdst;			// d input to REGFILE (either rt or rd)
+output reg rwd;				// Write data from ALU or DMEM
+output reg dm_byte;			// Set on a data byte instruction
+output reg dm_half;			// Set on a data half word instruction
 
 // Registers for holding s1 s2 inputs to REGFILE
 reg [4:0] s1;
@@ -158,6 +165,7 @@ begin : DECODE
 		rwd = 0;
 		dmwe = 0;
 		dm_byte = 0;
+		dm_half = 0;
 
 		s1 = 5'h0;
 		s2 = 5'h0;
@@ -175,6 +183,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];
@@ -189,6 +198,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -203,6 +213,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -217,6 +228,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -231,6 +243,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -242,7 +255,10 @@ begin : DECODE
 				aluop = MULT_OP;
 				dmwe = 0;
 				rwe = 0;
+				rdst = 1'hx;
+				rwd = 1'hx;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -254,7 +270,10 @@ begin : DECODE
 				aluop = MULT_OP;
 				dmwe = 0;
 				rwe = 0;
+				rdst = 1'hx;
+				rwd = 1'hx;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -266,7 +285,10 @@ begin : DECODE
 				aluop = DIV_OP;
 				dmwe = 0;
 				rwe = 0;
+				rdst = 1'hx;
+				rwd = 1'hx;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -278,7 +300,10 @@ begin : DECODE
 				aluop = DIV_OP;
 				dmwe = 0;
 				rwe = 0;
+				rdst = 1'hx;
+				rwd = 1'hx;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -293,6 +318,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;		
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = 5'h0;	//rs is not needed
 				s2 = 5'h0;	//rt is not needed
@@ -307,6 +333,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;		
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = 5'h0;	//rs is not needed
 				s2 = 5'h0;	//rt is not needed
@@ -321,6 +348,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -335,6 +363,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -349,6 +378,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = 5'h0;		
 				s2 = insn[20:16];	
@@ -363,6 +393,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -377,6 +408,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = 5'h0;			
 				s2 = insn[20:16];	
@@ -391,6 +423,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];	
 				s2 = insn[20:16];	
@@ -405,6 +438,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = 5'h0;			
 				s2 = insn[20:16];	
@@ -419,6 +453,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -433,6 +468,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -447,6 +483,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -461,6 +498,7 @@ begin : DECODE
 				rdst = 1;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 				
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -472,7 +510,10 @@ begin : DECODE
 				aluop = JALR_OP;
 				dmwe = 0;
 				rwe = 1;
+				rdst = 1;
+				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
@@ -484,7 +525,10 @@ begin : DECODE
 				aluop = JR_OP;	
 				dmwe = 0;
 				rwe = 0;
+				rdst = 1;
+				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
@@ -503,6 +547,7 @@ begin : DECODE
 				rdst = 0;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -517,6 +562,7 @@ begin : DECODE
 				rdst = 0;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -531,6 +577,7 @@ begin : DECODE
 				rdst = 0;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -545,6 +592,7 @@ begin : DECODE
 				rdst = 0;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -559,6 +607,7 @@ begin : DECODE
 				rdst = 0;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -573,6 +622,7 @@ begin : DECODE
 				rdst = 0;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -587,6 +637,7 @@ begin : DECODE
 				rdst = 0;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -601,6 +652,37 @@ begin : DECODE
 				rdst = 0;
 				rwd = 1;
 				dm_byte = 0;
+				dm_half = 0;
+
+				s1 = insn[25:21];
+				s2 = insn[20:16];
+			end
+			LH: begin
+				br = 0;
+				jp = 0;
+				aluinb = 1;
+				aluop = LH_OP;
+				dmwe = 0;
+				rwe = 1;
+				rdst = 0;
+				rwd = 1;
+				dm_byte = 0;
+				dm_half = 1;
+
+				s1 = insn[25:21];
+				s2 = insn[20:16];
+			end
+			LHU: begin
+				br = 0;
+				jp = 0;
+				aluinb = 1;
+				aluop = LH_OP;
+				dmwe = 0;
+				rwe = 1;
+				rdst = 0;
+				rwd = 1;
+				dm_byte = 0;
+				dm_half = 1;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -613,6 +695,20 @@ begin : DECODE
 				dmwe = 1;
 				rwe = 0;
 				dm_byte = 0;
+				dm_half = 0;
+
+				s1 = insn[25:21];
+				s2 = insn[20:16];
+			end
+			SH: begin
+				br = 0;
+				jp = 0;
+				aluinb = 1;
+				aluop = SH_OP;
+				dmwe = 1;
+				rwe = 0;
+				dm_byte = 0;
+				dm_half = 1;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -627,6 +723,7 @@ begin : DECODE
 				rdst = 0;
 				rwd = 1;
 				dm_byte = 1;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -641,6 +738,7 @@ begin : DECODE
 				rdst = 0;
 				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = 5'h0;
 				s2 = insn[20:16];
@@ -653,6 +751,7 @@ begin : DECODE
 				dmwe = 1;
 				rwe = 0;
 				dm_byte = 1;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -667,6 +766,7 @@ begin : DECODE
 				rdst = 0;
 				rwd = 1;
 				dm_byte = 1;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -679,6 +779,7 @@ begin : DECODE
 				dmwe = 0;
 				rwe = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -691,6 +792,7 @@ begin : DECODE
 				dmwe = 0;
 				rwe = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = insn[20:16];
@@ -703,6 +805,7 @@ begin : DECODE
 				dmwe = 0;
 				rwe = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
@@ -715,6 +818,7 @@ begin : DECODE
 				dmwe = 0;
 				rwe = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
@@ -731,6 +835,7 @@ begin : DECODE
 				dmwe = 0;
 				rwe = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
@@ -743,13 +848,14 @@ begin : DECODE
 				dmwe = 0;
 				rwe = 0;
 				dm_byte = 0;
+				dm_half = 0;
 
 				s1 = insn[25:21];
 				s2 = 5'h0;
 			end
 		endcase
 	end else if (insn[31:27] == 5'b00001) begin
-		// Instruction is JType (Without Registers)
+		// Instruction is J Type (Without Registers)
 		case (insn[31:26])
 			J: begin
 				br = 0;
@@ -759,6 +865,7 @@ begin : DECODE
 				dmwe = 0;
 				rwe = 0;
 				dm_byte = 0;
+				dm_half = 0;
 			end
 			JAL: begin
 				br = 0;
@@ -767,7 +874,9 @@ begin : DECODE
 				aluop = JAL_OP;
 				dmwe = 0;
 				rwe = 1;
+				rwd = 0;
 				dm_byte = 0;
+				dm_half = 0;
 			end
 		endcase
 	end
