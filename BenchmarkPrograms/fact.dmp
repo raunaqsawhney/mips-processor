@@ -1,0 +1,107 @@
+
+fact.elf:     file format elf32-tradbigmips
+
+
+Disassembly of section .text:
+
+80020000 <main>:
+80020000:	27bdffe0 	addiu	sp,sp,-32
+80020004:	afbf001c 	sw	ra,28(sp)
+80020008:	afbe0018 	sw	s8,24(sp)
+8002000c:	03a0f021 	move	s8,sp
+80020010:	afc00010 	sw	zero,16(s8)
+80020014:	0800800e 	j	80020038 <main+0x38>
+80020018:	00000000 	nop
+8002001c:	8fc40010 	lw	a0,16(s8)
+80020020:	0c008019 	jal	80020064 <factorial>
+80020024:	00000000 	nop
+80020028:	afc20014 	sw	v0,20(s8)
+8002002c:	8fc20010 	lw	v0,16(s8)
+80020030:	24420001 	addiu	v0,v0,1
+80020034:	afc20010 	sw	v0,16(s8)
+80020038:	8fc20010 	lw	v0,16(s8)
+8002003c:	2842000a 	slti	v0,v0,10
+80020040:	1440fff6 	bnez	v0,8002001c <main+0x1c>
+80020044:	00000000 	nop
+80020048:	00001021 	move	v0,zero
+8002004c:	03c0e821 	move	sp,s8
+80020050:	8fbf001c 	lw	ra,28(sp)
+80020054:	8fbe0018 	lw	s8,24(sp)
+80020058:	27bd0020 	addiu	sp,sp,32
+8002005c:	03e00008 	jr	ra
+80020060:	00000000 	nop
+
+80020064 <factorial>:
+80020064:	27bdffe8 	addiu	sp,sp,-24
+80020068:	afbf0014 	sw	ra,20(sp)
+8002006c:	afbe0010 	sw	s8,16(sp)
+80020070:	03a0f021 	move	s8,sp
+80020074:	afc40018 	sw	a0,24(s8)
+80020078:	8fc20018 	lw	v0,24(s8)
+8002007c:	14400004 	bnez	v0,80020090 <factorial+0x2c>
+80020080:	00000000 	nop
+80020084:	24020001 	li	v0,1
+80020088:	0800802c 	j	800200b0 <factorial+0x4c>
+8002008c:	00000000 	nop
+80020090:	8fc20018 	lw	v0,24(s8)
+80020094:	2442ffff 	addiu	v0,v0,-1
+80020098:	00402021 	move	a0,v0
+8002009c:	0c008019 	jal	80020064 <factorial>
+800200a0:	00000000 	nop
+800200a4:	00401821 	move	v1,v0
+800200a8:	8fc20018 	lw	v0,24(s8)
+800200ac:	70621002 	mul	v0,v1,v0
+800200b0:	03c0e821 	move	sp,s8
+800200b4:	8fbf0014 	lw	ra,20(sp)
+800200b8:	8fbe0010 	lw	s8,16(sp)
+800200bc:	27bd0018 	addiu	sp,sp,24
+800200c0:	03e00008 	jr	ra
+800200c4:	00000000 	nop
+
+Disassembly of section .reginfo:
+
+00000000 <.reginfo>:
+   0:	e000001c 	sc	zero,28(zero)
+	...
+
+Disassembly of section .pdr:
+
+00000000 <.pdr>:
+   0:	80020000 	lb	v0,0(zero)
+   4:	c0000000 	ll	zero,0(zero)
+   8:	fffffffc 	sdc3	$31,-4(ra)
+	...
+  14:	00000020 	add	zero,zero,zero
+  18:	0000001e 	0x1e
+  1c:	0000001f 	0x1f
+  20:	80020064 	lb	v0,100(zero)
+  24:	c0000000 	ll	zero,0(zero)
+  28:	fffffffc 	sdc3	$31,-4(ra)
+	...
+  34:	00000018 	mult	zero,zero
+  38:	0000001e 	0x1e
+  3c:	0000001f 	0x1f
+
+Disassembly of section .comment:
+
+00000000 <.comment>:
+   0:	4743433a 	c1	0x143433a
+   4:	2028536f 	addi	t0,at,21359
+   8:	75726365 	jalx	5c98d94 <main-0x7a38726c>
+   c:	72792047 	0x72792047
+  10:	2b2b204c 	slti	t3,t9,8268
+  14:	69746520 	0x69746520
+  18:	32303131 	andi	s0,s1,0x3131
+  1c:	2e30332d 	sltiu	s0,s1,13101
+  20:	35322920 	ori	s2,t1,0x2920
+  24:	342e352e 	ori	t6,at,0x352e
+  28:	Address 0x0000000000000028 is out of bounds.
+
+
+Disassembly of section .gnu.attributes:
+
+00000000 <.gnu.attributes>:
+   0:	41000000 	bc0f	4 <main-0x8001fffc>
+   4:	0f676e75 	jal	d9db9d4 <main-0x7264462c>
+   8:	00010000 	sll	zero,at,0x0
+   c:	00070401 	0x70401

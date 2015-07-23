@@ -1,0 +1,91 @@
+
+SumArray.elf:     file format elf32-tradbigmips
+
+
+Disassembly of section .text:
+
+80020000 <main>:
+80020000:	27bdffc8 	addiu	sp,sp,-56
+80020004:	afbe0034 	sw	s8,52(sp)
+80020008:	03a0f021 	move	s8,sp
+8002000c:	afc00000 	sw	zero,0(s8)
+80020010:	afc00004 	sw	zero,4(s8)
+80020014:	afc00000 	sw	zero,0(s8)
+80020018:	08008010 	j	80020040 <main+0x40>
+8002001c:	00000000 	nop
+80020020:	8fc20000 	lw	v0,0(s8)
+80020024:	00021080 	sll	v0,v0,0x2
+80020028:	03c21021 	addu	v0,s8,v0
+8002002c:	8fc30000 	lw	v1,0(s8)
+80020030:	ac430008 	sw	v1,8(v0)
+80020034:	8fc20000 	lw	v0,0(s8)
+80020038:	24420001 	addiu	v0,v0,1
+8002003c:	afc20000 	sw	v0,0(s8)
+80020040:	8fc20000 	lw	v0,0(s8)
+80020044:	2842000a 	slti	v0,v0,10
+80020048:	1440fff5 	bnez	v0,80020020 <main+0x20>
+8002004c:	00000000 	nop
+80020050:	afc00000 	sw	zero,0(s8)
+80020054:	08008021 	j	80020084 <main+0x84>
+80020058:	00000000 	nop
+8002005c:	8fc20000 	lw	v0,0(s8)
+80020060:	00021080 	sll	v0,v0,0x2
+80020064:	03c21021 	addu	v0,s8,v0
+80020068:	8c420008 	lw	v0,8(v0)
+8002006c:	8fc30004 	lw	v1,4(s8)
+80020070:	00621021 	addu	v0,v1,v0
+80020074:	afc20004 	sw	v0,4(s8)
+80020078:	8fc20000 	lw	v0,0(s8)
+8002007c:	24420001 	addiu	v0,v0,1
+80020080:	afc20000 	sw	v0,0(s8)
+80020084:	8fc20000 	lw	v0,0(s8)
+80020088:	2842000a 	slti	v0,v0,10
+8002008c:	1440fff3 	bnez	v0,8002005c <main+0x5c>
+80020090:	00000000 	nop
+80020094:	8fc20004 	lw	v0,4(s8)
+80020098:	03c0e821 	move	sp,s8
+8002009c:	8fbe0034 	lw	s8,52(sp)
+800200a0:	27bd0038 	addiu	sp,sp,56
+800200a4:	03e00008 	jr	ra
+800200a8:	00000000 	nop
+
+Disassembly of section .reginfo:
+
+00000000 <.reginfo>:
+   0:	e000000c 	sc	zero,12(zero)
+	...
+
+Disassembly of section .pdr:
+
+00000000 <.pdr>:
+   0:	80020000 	lb	v0,0(zero)
+   4:	40000000 	mfc0	zero,c0_index
+   8:	fffffffc 	sdc3	$31,-4(ra)
+	...
+  14:	00000038 	0x38
+  18:	0000001e 	0x1e
+  1c:	0000001f 	0x1f
+
+Disassembly of section .comment:
+
+00000000 <.comment>:
+   0:	4743433a 	c1	0x143433a
+   4:	2028536f 	addi	t0,at,21359
+   8:	75726365 	jalx	5c98d94 <main-0x7a38726c>
+   c:	72792047 	0x72792047
+  10:	2b2b204c 	slti	t3,t9,8268
+  14:	69746520 	0x69746520
+  18:	32303131 	andi	s0,s1,0x3131
+  1c:	2e30332d 	sltiu	s0,s1,13101
+  20:	35322920 	ori	s2,t1,0x2920
+  24:	342e352e 	ori	t6,at,0x352e
+  28:	Address 0x0000000000000028 is out of bounds.
+
+
+Disassembly of section .gnu.attributes:
+
+00000000 <.gnu.attributes>:
+   0:	41000000 	bc0f	4 <main-0x8001fffc>
+   4:	0f676e75 	jal	d9db9d4 <main-0x7264462c>
+   8:	00010000 	sll	zero,at,0x0
+   c:	00070401 	0x70401
